@@ -1,12 +1,46 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 const { VITE_KAKAO_MAP_KEY } = import.meta.env;
 
 const mapCountainer = ref(null);
 
+const props = defineProps({
+  pointList: {
+    type: Array,
+    default: () => []
+  }
+});
+
+watch(props.pointList, (newList) => {
+  drawPolyline(newList);
+})
+
+let map;
+
 onMounted(() => {
   loadKakaoMap(mapCountainer.value);
 })
+
+console.log(props.pointList)
+
+
+const drawPolyline = (pathCoordinates) => {
+  // 이전 경로를 지우기 위해 기존 폴리라인 삭제
+  if (map && map.polyline) {
+    map.polyline.setMap(null);
+  }
+  //	지도에 선을 표시한다
+  map.polyline = new window.kakao.maps.Polyline({
+		map									:	map, 										// 선을 표시할 지도 객체
+		path								:	pathCoordinates.map((point) => new window.kakao.maps.LatLng(point.lat, point.lng)),							//	선을 구성하는 좌표 배열
+		strokeWeight				:	10,											//	선의 두께
+		strokeColor					:	"#FF0000",							//	선 색
+		strokeOpacity				:	0.9,										//	선 투명도
+		strokeStyle					:	"solid"									//	선 스타일
+	});
+
+};
+
 
 const loadKakaoMap = (container) => {
   const script = document.createElement('script');
@@ -20,10 +54,23 @@ const loadKakaoMap = (container) => {
         level: 6,
       }
 
-      return  new window.kakao.maps.Map(container, options);
-    })
-  }
+      map =  new window.kakao.maps.Map(container, options);
+
+      // let pathCoordinates = props.pointList;
+      // let pathCoordinates = attrs.props;
+      if (props.pointList.length) {
+        drawPolyline(props.pointList);
+      }
+    });
+  };
+  watch(props.pointList, (newList) => {
+    if (map) {
+      drawPolyline(newList);
+    }
+  });
 };
+
+// console.log(attrs);
 
 </script>
 

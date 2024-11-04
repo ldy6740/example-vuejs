@@ -1,7 +1,9 @@
 <script setup>
+import { ref } from 'vue';
 import MapView from './MapView.vue';
+import axios from 'axios';
 
-let pointList = [];
+let pointList = ref([]);
 let START_TIME = "";
 let END_TIME = "";
 
@@ -46,7 +48,7 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
 	const params = {
 		"number":`${vehicleNumber}`,
 		"starttime": "2024-10-25 15:06:06.000",
-		"endtime": "2024-10-25 15:06:06.000",
+		"endtime": "2024-10-25 15:45:06.000",
 		// "starttime": startTime,
 		// "endtime": endTime,
 	}
@@ -54,15 +56,17 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
 	const requrl = `${uri}?${queryString}`;
 	try {
 		// fetch API를 이용하여 api 호출
-		const response = await fetch(requrl, {
-			method: 'GET',
+		const response = await axios.get(requrl, {
+			// method: 'GET',
 			headers: {
 				"Content-Type": "application/json",
 			}
-		});
+		}).then((responses) => {
+      return responses;
+    })
 
-		const data = await response.json();
-		console.log(data);
+		const data = response.data;
+		console.log(response.data);
 
 		//운행 데이터 조회하여 좌표 값 데이터 가공
 		var coordinatesValue = data.map((items) => {
@@ -74,16 +78,16 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
 			return new window.kakao.maps.LatLng(lat, lon);
 		});
 
-		pointList.push(...coordinatesValue);
+		pointList.value = coordinatesValue;
 
 
 	} catch (error) {
 		console.log(error);
 		// alert("존재하는 데이터가 없습니다.")
 	};
-}
+  console.log(pointList.value);
+};
 
-console.log(pointList);
 
 </script>
 
@@ -100,7 +104,7 @@ console.log(pointList);
 			</div>
 		</form>
 	</section>
-  <MapView />
+  <MapView :pointList="pointList" />
 
 </template>
 
