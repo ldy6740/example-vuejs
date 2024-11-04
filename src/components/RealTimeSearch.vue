@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import MapView from './MapView.vue';
 import axios from 'axios';
 
+
 let pointList = ref([]);
 let START_TIME = "";
 let END_TIME = "";
@@ -45,6 +46,7 @@ function realTimeCheck(vehicleNumber) {
 // 차량 accelerometer 운행 데이터 조회 함수
 async function getCoordinates(vehicleNumber, startTime, endTime) {
 	const uri = "http://localhost:3000/event/accelerometer";
+	// const uri = API_URL;
 	const params = {
 		"number":`${vehicleNumber}`,
 		"starttime": "2024-10-25 15:06:06.000",
@@ -66,7 +68,7 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
     })
 
 		const data = response.data;
-		console.log(response.data);
+		// console.log("data :" + response.data);
 
 		//운행 데이터 조회하여 좌표 값 데이터 가공
 		var coordinatesValue = data.map((items) => {
@@ -78,14 +80,14 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
 			return new window.kakao.maps.LatLng(lat, lon);
 		});
 
-		pointList.value = coordinatesValue;
+		pointList.value.push(...coordinatesValue);
 
 
 	} catch (error) {
 		console.log(error);
-		// alert("존재하는 데이터가 없습니다.")
+		alert("존재하는 데이터가 없습니다.")
 	};
-  console.log(pointList.value);
+  // console.log("pointList :" + pointList.value);
 };
 
 
@@ -104,7 +106,7 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
 			</div>
 		</form>
 	</section>
-  <MapView :pointList="pointList" />
+  <MapView :pointList=pointList />
 
 </template>
 
