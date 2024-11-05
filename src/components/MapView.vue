@@ -9,7 +9,7 @@ const mapCountainer = ref(null);
 const props = defineProps({
   pointList: Array,
   isFunction: Boolean,
-  breakPoint: Array,
+  breakPoint: Array
 });
 
 
@@ -71,6 +71,35 @@ watch(
 )
 
 console.log(props.breakPoint);
+
+watch(
+  () => props.breakPoint,
+  (newPosition) => {
+    if(map) {
+      brakePointMarker(newPosition);
+    }
+  },
+  {deep: true}
+)
+
+
+function brakePointMarker(position) {
+  //마커 이미지 주소
+  const imageSrc =  "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png";
+  for ( var i = 0; i < position.length; i++ ) {
+    //	마커 이미지의 이미지 크기 입니다.
+	  var imageSize	=	new window.kakao.maps.Size(24, 35);
+    //	마커 이미지를 생성합니다.
+	  var markerImage	=	new window.kakao.maps.MarkerImage(imageSrc, imageSize);
+
+    map.Marker = new window.kakao.maps.Marker({
+      map						:	map,																	//	마커를 표시할 지도
+      position			:	position[i].latlng,													//	마커를 표시할 위치
+      title					:	position[i].title,														//	마커의 타이틀, 마커에 마우스를 올리면 타이틀이 표시됩니다.
+      image					:	markerImage
+    });
+  }
+}
 
 
 

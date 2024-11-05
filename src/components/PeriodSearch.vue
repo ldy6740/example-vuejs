@@ -158,7 +158,8 @@ function getData(datas) {
 			</div>
 		</form>
   </section>
-  <MapView :pointList="pointList" :isFunction="isFunction" :brakePoint="brakePoint" />
+  <MapView :pointList="pointList" :isFunction="isFunction" :breakPoint="brakePoint"/>
+  <!-- <MapView :data="{pointList: pointList, isFunction:isFunction, brakePoint: brakePoint}" /> -->
 </template>
 
 <style scoped>
