@@ -3,25 +3,20 @@ import { ref, onMounted, watch, defineProps } from 'vue';
 const { VITE_KAKAO_MAP_KEY } = import.meta.env;
 
 const mapCountainer = ref(null);
-let point = ref([]);
 
 
 
 const props = defineProps({
   pointList: Array,
+  isFunction: Boolean,
+  breakPoint: Array,
 });
-point.value = props.pointList
-console.log(props.pointList);
 
-watch(props.pointList, (newList) => {
-  drawPolyline(newList);
-})
 
 let map;
 
 onMounted(() => {
   loadKakaoMap(mapCountainer.value);
-  // point.value = props.pointList
 })
 
 // console.log(props.pointList)
@@ -29,8 +24,10 @@ onMounted(() => {
 
 const drawPolyline = (pathCoordinates) => {
   // 이전 경로를 지우기 위해 기존 폴리라인 삭제
-  if (map && map.polyline) {
-    map.polyline.setMap(null);
+  if(props.isFunction) {
+    if (map && map.polyline) {
+      map.polyline.setMap(null);
+    }
   }
   //	지도에 선을 표시한다
   map.polyline = new window.kakao.maps.Polyline({
@@ -59,19 +56,23 @@ const loadKakaoMap = (container) => {
 
       map =  new window.kakao.maps.Map(container, options);
 
-      // let pathCoordinates = props.pointList;
-      // let pathCoordinates = attrs.props;
-      // if (props.pointList.length) {
-      //   drawPolyline(props.pointList);
-      // }
     });
   };
-  watch(props.pointList, (newList) => {
+};
+
+watch(
+  () => props.pointList,
+  (newList) => {
     if (map) {
       drawPolyline(newList);
     }
-  });
-};
+  },
+  {deep: true}
+)
+
+console.log(props.breakPoint);
+
+
 
 // console.log(attrs);
 

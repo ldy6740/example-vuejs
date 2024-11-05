@@ -5,6 +5,9 @@ import axios from 'axios';
 
 
 let pointList = ref([]);
+const isFunction = ref(false);
+
+let FS_START_TIME = "";
 let START_TIME = "";
 let END_TIME = "";
 
@@ -22,7 +25,6 @@ function getCurrentTime() {
 	let seconds = today.getSeconds() < 10 ? `0${today.getSeconds()}`: today.getSeconds();  // 초
 
 
-
 	return `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
 }
 
@@ -32,15 +34,26 @@ function firstSearch() {
   let vehicleNumber = document.querySelector('#vehicle-number').value;
 
   // 최초 시작 시간 설정
+  FS_START_TIME = getCurrentTime();
 	START_TIME = getCurrentTime();
   END_TIME = START_TIME;
 
-
+  getCoordinates(vehicleNumber, START_TIME, END_TIME);
   realTimeCheck(vehicleNumber);
 }
 
+
 function realTimeCheck(vehicleNumber) {
-  getCoordinates(vehicleNumber, START_TIME, END_TIME);
+
+  // 실시간인 경우 10초에 한번씩 자동 조회
+	setInterval(() => {
+		START_TIME = END_TIME;
+		END_TIME = getCurrentTime();
+
+		getCoordinates(vehicleNumber, START_TIME, END_TIME);
+	}, 10000);
+
+
 }
 
 // 차량 accelerometer 운행 데이터 조회 함수
@@ -49,10 +62,11 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
 	// const uri = API_URL;
 	const params = {
 		"number":`${vehicleNumber}`,
-		"starttime": "2024-10-25 15:06:06.000",
-		"endtime": "2024-10-25 15:45:06.000",
-		// "starttime": startTime,
-		// "endtime": endTime,
+		// "starttime": "2024-11-05 12:00:00",
+		// "endtime": "2024-11-05 14:00:00",
+    "firststarttime": FS_START_TIME,
+		"starttime": startTime,
+		"endtime": endTime,
 	}
 	const queryString = new URLSearchParams(params).toString();
 	const requrl = `${uri}?${queryString}`;
@@ -67,7 +81,7 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
       return responses;
     })
 
-		const data = response.data;
+		let data = response.data;
 		// console.log("data :" + response.data);
 
 		//운행 데이터 조회하여 좌표 값 데이터 가공
@@ -106,7 +120,7 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
 			</div>
 		</form>
 	</section>
-  <MapView :pointList=pointList />
+  <MapView :pointList="pointList" :isFunction="isFunction" />
 
 </template>
 

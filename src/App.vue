@@ -109,7 +109,7 @@ export default {
 	gap: 10px;
 	& > div {
 		& > * {
-			width: 220px;
+			width: 250px;
 			height: 40px;
 			border:1px solid #ededed;
 			text-indent: 10px;
