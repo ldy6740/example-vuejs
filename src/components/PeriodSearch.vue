@@ -15,6 +15,7 @@ import { Korean } from 'flatpickr/dist/l10n/ko.js';
 let pointList = ref([]); // 좌표 값 리스트
 const isFunction = ref(true);
 let brakePoint = ref([]); // 브레이크 이벤트 좌표
+let brakeData = ref([]); // 브레이크 이벤트 데이터
 
 const vehicleNumber = ref('');
 const startDate = ref(''); // start date
@@ -52,6 +53,8 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
   //
   if (pointList.value.length){
     pointList.value = [];
+    brakePoint.value = [];
+    brakeData.value = [];
   }
 	const uri = "http://localhost:3000/event/accelerometer";
 	// const uri = API_URL;
@@ -108,9 +111,12 @@ function getData(datas) {
     return data.gubun === 'brake';
   })
 
-  const values = items.map((item) => {
+  brakeData.value.push(...items);
+
+  const values = items.map((item, index) => {
 
     const value = {
+      id: index,
       title: "brake",
       latlng: new window.kakao.maps.LatLng(item.GPS_Latitude, item.GPS_Longitude)
     }
@@ -158,7 +164,7 @@ function getData(datas) {
 			</div>
 		</form>
   </section>
-  <MapView :pointList="pointList" :isFunction="isFunction" :breakPoint="brakePoint"/>
+  <MapView :pointList="pointList" :isFunction="isFunction" :breakPoint="brakePoint" :breakData="brakeData" />
   <!-- <MapView :data="{pointList: pointList, isFunction:isFunction, brakePoint: brakePoint}" /> -->
 </template>
 
