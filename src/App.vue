@@ -147,7 +147,7 @@ export default {
 			border:1px solid #b9b9b9;
 			border-radius: 10px;
 			padding: 10px;
-			width: 150px;
+			min-width: 150px;
 			height: 50px;
 			display: flex;
 			flex-direction: column;

@@ -1,24 +1,59 @@
 <script setup>
-import { ref, onMounted, watch, defineProps, watchEffect, toRaw } from 'vue';
+import { ref, onMounted, watch, defineProps} from 'vue';
 const { VITE_KAKAO_MAP_KEY } = import.meta.env;
 
 const mapCountainer = ref(null);
+let breakStrong = ref(0);
+let breakMedium = ref(0);
+let breakWeak = ref(0);
+let breakSum = ref(0);
+let breakDeceleration = ref(0);
+let accelStrong = ref(0);
+let accelMedium = ref(0);
+let accelWeak = ref(0);
+let accelSum = ref(0);
+let accelDeceleration = ref(0);
+let totalMileage = ref(0);
 
 const props = defineProps({
   pointList: Array,
   isFunction: Boolean,
   breakPoint: Array,
-  breakData: Array
+  breakData: Array,
+  searchAllData: Array
 });
+
+
+function dashboardData() {
+  let items = props.searchAllData;
+   // "brake" 데이터 추출
+   const breakList = items.filter((data) => data.gubun === 'brake');
+  if (breakList.length > 0) {
+    breakStrong.value = breakList[0].Calc_Value_sum3;
+    breakMedium.value = breakList[0].Calc_Value_sum2;
+    breakWeak.value = breakList[0].Calc_Value_sum1;
+    breakSum.value = Number(breakStrong.value) + Number(breakMedium.value) + Number(breakWeak.value);
+    breakDeceleration.value = breakList[0].calc_value_sum.toFixed(2);
+  }
+
+  // "accel" 데이터 추출
+  const accelList = items.filter((data) => data.gubun === 'accel');
+  if (accelList.length > 0) {
+    accelStrong.value = accelList[0].Calc_Value_sum3;
+    accelMedium.value = accelList[0].Calc_Value_sum2;
+    accelWeak.value = accelList[0].Calc_Value_sum1;
+    accelSum.value = Number(accelStrong.value) + Number(accelMedium.value) + Number(accelWeak.value);
+    accelDeceleration.value = accelList[0].calc_value_sum.toFixed(2);
+    totalMileage.value = accelList[0].Distance_Traveled;
+  }
+}
+
 
 let map;
 
 onMounted(() => {
   loadKakaoMap(mapCountainer.value);
 })
-
-// console.log(props.pointList)
-
 
 const drawPolyline = (pathCoordinates) => {
   // 이전 경로를 지우기 위해 기존 폴리라인 삭제
@@ -38,7 +73,6 @@ const drawPolyline = (pathCoordinates) => {
 	});
 
 };
-
 
 const loadKakaoMap = (container) => {
   const script = document.createElement('script');
@@ -63,6 +97,7 @@ watch(
   (newList) => {
     if (map) {
       drawPolyline(newList);
+      dashboardData();
     }
   },
   {deep: true}
@@ -81,12 +116,11 @@ watch(
 )
 
 
-let testValue = ref(null);
-let rawData = toRaw(testValue.value);
+let breakRawData = ref(null);
 let markers = [];
-const iwContent = `<div style="padding:5px;">Hello World! <br> ${testValue.value}</div>`;
+// const iwContent = `<div style="padding:5px;">Hello World! <br> ${breakRawData.value}</div>`;
 
-console.log(rawData);
+// console.log(breakRawData.value);
 
 function brakePointMarker(positions) {
 
@@ -113,21 +147,21 @@ function brakePointMarker(positions) {
 
     map.InfoWindow = new window.kakao.maps.InfoWindow({
       position      : position.latlng,
-      content       : iwContent,
       removable     : true
     });
 
     // console.log(positions[i]);
 
     window.kakao.maps.event.addListener(Marker, 'click', function() {
-      console.log(index);
-      testValue.value = props.breakData[index];
+
+      breakRawData.value = props.breakData[index];
+      map.InfoWindow.setContent(`<div style="padding:5px; line-height: 30px;">Hello World! <br> ${breakRawData.value.calc_value}</div>`);
       map.InfoWindow.open(map, Marker);
     })
 
     markers.push(Marker);
   });
-  // console.log(testValue.value);
+  // console.log(breakRawData.value);
   // console.log(markers);
 }
 
@@ -141,25 +175,49 @@ function brakePointMarker(positions) {
   <section class="map-area" ref="mapCountainer">
 		<article class="map-view" id="map">
 			<div class="dashboard-area">
+        <div class="dashboard-item">
+					<p class="item-label">브레이크 이벤트(강)</p>
+					<p class="item-value"> {{ breakStrong }}회</p>
+				</div>
+        <div class="dashboard-item">
+					<p class="item-label">브레이크 이벤트(중)</p>
+					<p class="item-value"> {{ breakMedium }}회</p>
+				</div>
+        <div class="dashboard-item">
+					<p class="item-label">브레이크 이벤트(약)</p>
+					<p class="item-value"> {{ breakWeak }}회</p>
+				</div>
 				<div class="dashboard-item">
-					<p class="item-label">브레이크 이벤트</p>
-					<p class="item-value">50회</p>
+					<p class="item-label">브레이크 이벤트(총합)</p>
+					<p class="item-value"> {{ breakSum }}회</p>
 				</div>
 				<div class="dashboard-item">
 					<p class="item-label">누적 감속 값(브레이크)</p>
-					<p class="item-value">50km/h</p>
+					<p class="item-value">{{ breakDeceleration }}km/h</p>
+				</div>
+        <div class="dashboard-item">
+					<p class="item-label">감속 이벤트(강)</p>
+					<p class="item-value">{{ accelStrong }}회</p>
+				</div>
+        <div class="dashboard-item">
+					<p class="item-label">감속 이벤트(중)</p>
+					<p class="item-value">{{ accelMedium }}회</p>
+				</div>
+        <div class="dashboard-item">
+					<p class="item-label">감속 이벤트(약)</p>
+					<p class="item-value">{{ accelWeak }}회</p>
 				</div>
 				<div class="dashboard-item">
-					<p class="item-label">감속 이벤트</p>
-					<p class="item-value">30회</p>
+					<p class="item-label">감속 이벤트(총합)</p>
+					<p class="item-value">{{ accelSum }}회</p>
 				</div>
 				<div class="dashboard-item">
 					<p class="item-label">누적 감속 값(가속도계)</p>
-					<p class="item-value">50km/h</p>
+					<p class="item-value">{{ accelDeceleration }}km/h</p>
 				</div>
 				<div class="dashboard-item">
 					<p class="item-label">총 주행거리</p>
-					<p class="item-value">100km/h</p>
+					<p class="item-value">{{ totalMileage }}km/h</p>
 				</div>
 			</div>
 		</article>
