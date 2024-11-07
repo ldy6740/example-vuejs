@@ -87,7 +87,7 @@ function valueDow() {
 
   opacityValue.value = Number(value === '0.0'? 0 : value);
   optionValueChange(opacityValue.value)
-}
+};
 
 function optionValueChange(value) {
   map.polyline.setOptions({
