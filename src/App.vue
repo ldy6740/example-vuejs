@@ -139,6 +139,7 @@ export default {
 		top: 20px;
 		left: 20px;
 		display: flex;
+    flex-wrap: wrap;
 		align-items: center;
 		gap: 10px;
 		z-index: 999;

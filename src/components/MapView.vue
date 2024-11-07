@@ -29,9 +29,9 @@ function dashboardData() {
    // "brake" 데이터 추출
    const breakList = items.filter((data) => data.gubun === 'brake');
   if (breakList.length > 0) {
-    breakStrong.value = breakList[0].Calc_Value_sum3;
+    breakStrong.value = breakList[0].Calc_Value_sum1;
     breakMedium.value = breakList[0].Calc_Value_sum2;
-    breakWeak.value = breakList[0].Calc_Value_sum1;
+    breakWeak.value = breakList[0].Calc_Value_sum3;
     breakSum.value = Number(breakStrong.value) + Number(breakMedium.value) + Number(breakWeak.value);
     breakDeceleration.value = breakList[0].calc_value_sum.toFixed(2);
   }
@@ -39,9 +39,9 @@ function dashboardData() {
   // "accel" 데이터 추출
   const accelList = items.filter((data) => data.gubun === 'accel');
   if (accelList.length > 0) {
-    accelStrong.value = accelList[0].Calc_Value_sum3;
+    accelStrong.value = accelList[0].Calc_Value_sum1;
     accelMedium.value = accelList[0].Calc_Value_sum2;
-    accelWeak.value = accelList[0].Calc_Value_sum1;
+    accelWeak.value = accelList[0].Calc_Value_sum3;
     accelSum.value = Number(accelStrong.value) + Number(accelMedium.value) + Number(accelWeak.value);
     accelDeceleration.value = accelList[0].calc_value_sum.toFixed(2);
     totalMileage.value = accelList[0].Distance_Traveled;
@@ -55,6 +55,46 @@ onMounted(() => {
   loadKakaoMap(mapCountainer.value);
 })
 
+
+// 경로 투명도 조절
+let opacityValue = ref(1);
+let number = 10;
+let value = '';
+
+function valueUp() {
+  if (opacityValue.value == 1) {
+    return;
+  }
+  if (number < 10) {
+    number += 1;
+    value = `0.${number}`;
+  }
+  // console.log(value === '0.10'? 10 : value);
+  opacityValue.value = Number(value === '0.10'? 1 : value);
+  // map.polyline.setOpacity(opacityValue.value);
+
+  optionValueChange(opacityValue.value)
+};
+function valueDow() {
+  if(opacityValue.value == 0) {
+    return;
+  }
+
+  if (number <= 10) {
+    number -= 1;
+    value = `0.${number}`;
+  }
+
+  opacityValue.value = Number(value === '0.0'? 0 : value);
+  optionValueChange(opacityValue.value)
+}
+
+function optionValueChange(value) {
+  map.polyline.setOptions({
+    strokeOpacity : value,
+  })
+}
+
 const drawPolyline = (pathCoordinates) => {
   // 이전 경로를 지우기 위해 기존 폴리라인 삭제
   if(props.isFunction) {
@@ -66,9 +106,9 @@ const drawPolyline = (pathCoordinates) => {
   map.polyline = new window.kakao.maps.Polyline({
 		map									:	map, 										// 선을 표시할 지도 객체
 		path								:	pathCoordinates,							//	선을 구성하는 좌표 배열
-		strokeWeight				:	10,											//	선의 두께
+		strokeWeight				:	5,											//	선의 두께
 		strokeColor					:	"#FF0000",							//	선 색
-		strokeOpacity				:	0.9,										//	선 투명도
+		strokeOpacity				:	opacityValue.value,										//	선 투명도
 		strokeStyle					:	"solid"									//	선 스타일
 	});
 
@@ -155,7 +195,7 @@ function brakePointMarker(positions) {
     window.kakao.maps.event.addListener(Marker, 'click', function() {
 
       breakRawData.value = props.breakData[index];
-      map.InfoWindow.setContent(`<div style="padding:5px; line-height: 30px;">Hello World! <br> ${breakRawData.value.calc_value}</div>`);
+      map.InfoWindow.setContent(`<div style="padding:5px; line-height: 30px;">감속 정도 <br> ${breakRawData.value.calc_value}</div>`);
       map.InfoWindow.open(map, Marker);
     })
 
@@ -164,7 +204,6 @@ function brakePointMarker(positions) {
   // console.log(breakRawData.value);
   // console.log(markers);
 }
-
 
 
 // console.log(attrs);
@@ -218,6 +257,14 @@ function brakePointMarker(positions) {
 				<div class="dashboard-item">
 					<p class="item-label">총 주행거리</p>
 					<p class="item-value">{{ totalMileage }}km/h</p>
+				</div>
+        <div class="dashboard-item">
+					<p class="item-label">투명도 조절</p>
+					<p class="item-value">
+            <span @click="valueUp">+</span>
+            <span>{{ opacityValue }}</span>
+            <span @click="valueDow">-</span>
+          </p>
 				</div>
 			</div>
 		</article>

@@ -113,17 +113,14 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
 function getBreakData(datas) {
   // console.log(`datas: ${datas}`)
 
-  const items = datas.filter((data) => {
-    return data.gubun === 'brake';
-  })
+  // const items = datas.filter((data) => data.gubun === 'brake') // brakeData 추출
 
-  brakeData.value.push(...items);
+  brakeData.value.push(...datas);
 
-  const values = items.map((item, index) => {
+  const values = datas.map((item, index) => {
 
     const value = {
       id: index,
-      title: "brake",
       latlng: new window.kakao.maps.LatLng(item.GPS_Latitude, item.GPS_Longitude)
     }
     return value;
