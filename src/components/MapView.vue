@@ -15,6 +15,9 @@ let accelSum = ref(0);
 let accelDeceleration = ref(0);
 let totalMileage = ref(0);
 
+let showOverlay = ref(false);
+let overlayPosition = ref({top:0, left:0});
+
 const props = defineProps({
   pointList: Array,
   isFunction: Boolean,
@@ -158,14 +161,15 @@ watch(
 
 let breakRawData = ref(null);
 let markers = [];
-// const iwContent = `<div style="padding:5px;">Hello World! <br> ${breakRawData.value}</div>`;
-
-// console.log(breakRawData.value);
+let oldMaker = null;
+let markerImages = null;
 
 function brakePointMarker(positions) {
 
   markers.forEach(marker => marker.setMap(null));
   markers = [];
+
+  let Marker = null;
 
   //마커 이미지 주소
   const imageSrc =  "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png";
@@ -174,20 +178,15 @@ function brakePointMarker(positions) {
     //	마커 이미지의 이미지 크기 입니다.
 	  var imageSize	=	new window.kakao.maps.Size(24, 35);
     //	마커 이미지를 생성합니다.
-	  var markerImage	=	new window.kakao.maps.MarkerImage(imageSrc, imageSize);
+	  markerImages	=	new window.kakao.maps.MarkerImage(imageSrc, imageSize);
 
-    let Marker = new window.kakao.maps.Marker({
+    Marker = new window.kakao.maps.Marker({
       map						:	map,																	  //	마커를 표시할 지도
       id            : position.id,
       position			:	position.latlng,										//	마커를 표시할 위치
       title					:	position.title,										  //	마커의 타이틀, 마커에 마우스를 올리면 타이틀이 표시됩니다.
-      image					:	markerImage,
+      image					:	markerImages,
       clickble      : true
-    });
-
-    map.InfoWindow = new window.kakao.maps.InfoWindow({
-      position      : position.latlng,
-      removable     : true
     });
 
     // console.log(positions[i]);
@@ -195,14 +194,31 @@ function brakePointMarker(positions) {
     window.kakao.maps.event.addListener(Marker, 'click', function() {
 
       breakRawData.value = props.breakData[index];
-      map.InfoWindow.setContent(`<div style="padding:5px; line-height: 30px;">감속 정도 <br> ${breakRawData.value.calc_value}</div>`);
-      map.InfoWindow.open(map, Marker);
-    })
+
+      var imageSize	=	new window.kakao.maps.Size(34, 45);
+      //	마커 이미지를 생성합니다.
+      var markerImage	=	new window.kakao.maps.MarkerImage(imageSrc, imageSize);
+
+      // console.log(oldMaker);
+      if (oldMaker) {
+        oldMaker.setImage(markerImages);
+      }
+      this.setImage(markerImage);
+      oldMaker = this;
+
+
+      showOverlay.value = true;
+    });
 
     markers.push(Marker);
   });
-  // console.log(breakRawData.value);
-  // console.log(markers);
+}
+
+
+
+function hideOverlay() {
+  showOverlay.value = false;
+  oldMaker.setImage(markerImages);
 }
 
 
@@ -268,6 +284,18 @@ function brakePointMarker(positions) {
 				</div>
 			</div>
 		</article>
+    <article v-if="showOverlay" class="custom-overlay" :style="{ top: `${overlayPosition.top}px`, left: `${overlayPosition.left}px`, opacity: `${opacityValue}`}">
+      <span @click="hideOverlay">닫기</span> <br>
+      <div class="overlay-view">
+        <p class="overlay-label">감속정도</p>
+        <p class="overlay-value">{{ breakRawData.calc_value }}</p>
+        <div class="opacity-controll-box">
+          <span @click="valueUp">+</span>
+          <span>{{ opacityValue }}</span>
+          <span @click="valueDow">-</span>
+        </div>
+      </div>
+    </article>
 	</section>
 </template>
 

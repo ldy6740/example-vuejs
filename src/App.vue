@@ -164,5 +164,12 @@ export default {
 			}
 		}
 	}
+  .custom-overlay {
+    position: absolute;
+    background: white;
+    border:1px solid #ededed;
+    padding: 10px;
+    z-index: 999;
+  }
 }
 </style>
