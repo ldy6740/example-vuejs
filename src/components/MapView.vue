@@ -37,6 +37,7 @@ const props = defineProps({
 
 onMounted(() => {
   loadKakaoMap(mapCountainer.value);
+  // colorClick();
 })
 
 /**
@@ -66,8 +67,9 @@ function dashboardData() {
 }
 
 function colorClick() {
+
+
   let colorItem = document.querySelectorAll('.color-bg-pick');
-  console.log('ho');
   colorItem.forEach((item) => {
     item.addEventListener('click', (e) => {
       colorItem.forEach((remove) => {
@@ -203,6 +205,7 @@ watch(
       getPolylineCoords(newResponseData);
       getEventData(newResponseData)
       dashboardData();
+      colorClick();
     }
   },
   {deep: true}

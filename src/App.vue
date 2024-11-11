@@ -271,6 +271,10 @@ export default {
           height: 30px;
           cursor: pointer;
           border-radius: 5px;
+          &.on {
+            // border: 2px solid #0063c0;
+            box-shadow: 0 0 0 3px #0063c0 inset;
+          }
         }
        }
       }
