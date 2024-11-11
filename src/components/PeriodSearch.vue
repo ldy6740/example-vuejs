@@ -87,7 +87,7 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
 
     searchAllData.value.push(...data);
     // 브레이크 포인트 데이터 가공을 위해 전체 데이터 전달
-    getBreakData(data)
+    getEventData(data)
 
 		//운행 데이터 조회하여 좌표 값 데이터 가공
 		var coordinatesValue = data.map((items) => {
@@ -110,7 +110,7 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
 };
 
 
-function getBreakData(datas) {
+function getEventData(datas) {
   // console.log(`datas: ${datas}`)
 
   // const items = datas.filter((data) => data.gubun === 'brake') // brakeData 추출
@@ -121,7 +121,9 @@ function getBreakData(datas) {
 
     const value = {
       id: index,
-      latlng: new window.kakao.maps.LatLng(item.GPS_Latitude, item.GPS_Longitude)
+      latlng: new window.kakao.maps.LatLng(item.GPS_Latitude, item.GPS_Longitude),
+      gubun: item.gubun,
+      calc_value: item.calc_value
     }
     return value;
   });
@@ -167,7 +169,7 @@ function getBreakData(datas) {
 			</div>
 		</form>
   </section>
-  <MapView :pointList="pointList" :isFunction="isFunction" :breakPoint="brakePoint" :breakData="brakeData" :searchAllData />
+  <MapView :pointList="pointList" :isFunction="isFunction" :eventPointData="brakePoint" :breakData="brakeData" :searchAllData />
   <!-- <MapView :data="{pointList: pointList, isFunction:isFunction, brakePoint: brakePoint}" /> -->
 </template>
 
