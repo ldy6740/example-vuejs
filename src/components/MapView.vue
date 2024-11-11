@@ -144,7 +144,10 @@ const loadKakaoMap = (container) => {
   };
 };
 
-// Response Data를 Polyline 좌표값으로 가공
+ /**
+  * Response Data를 Polyline 좌표값으로 가공
+  * @param {*} data
+  */
 function getPolylineCoords(data) {
   let coordinatesValue = data.map((items) => {
     // response data 에서 경로라인에 사용할 좌표 추출
@@ -157,7 +160,11 @@ function getPolylineCoords(data) {
   drawPolyline(coordinatesValue) // 지도에 좌표 표시 함수로 데이터 전달
 }
 
-// Response Data를 Event 데이터로 가공
+
+/**
+ * Response Data를 Event 데이터로 가공
+ * @param {*} data
+ */
 function getEventData(data) {
   const eventDatas = data.map((item) => {
     const eventData = {
@@ -190,7 +197,10 @@ let markers = [];
 let oldMarker = null;
 let markerImages = null;
 let testMakerImg = null;
-
+/**
+ * Event 발생 지점 Marker 표시 및 마커 클릭시 이벤트 정보 표시
+ * @param {*} eventDatas
+ */
 function eventPointMarker(eventDatas) {
 
   markers.forEach(marker => marker.setMap(null));
