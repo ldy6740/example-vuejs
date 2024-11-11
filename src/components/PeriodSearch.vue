@@ -12,15 +12,6 @@ import 'flatpickr/dist/flatpickr.css';
 import ConfirmDatePlugin from 'flatpickr/dist/plugins/confirmDate/confirmDate.js';
 import { Korean } from 'flatpickr/dist/l10n/ko.js';
 
-let pointList       = ref([]); // 조회된 좌표 값 리스트
-const isFunction    = ref(true); // 함수 실행 여부
-let brakePoint      = ref([]); // 브레이크 이벤트 좌표
-let brakeData       = ref([]); // 브레이크 이벤트 데이터
-let searchAllData   = ref([]);
-
-const vehicleNumber = ref('');
-const startDate     = ref(''); // start date
-const endData       = ref(''); // end date
 // flatPickr config
 const config        = ref({
     wrap: true, // set wrap to true only when using 'input-group'
@@ -32,106 +23,64 @@ const config        = ref({
     plugins: [new ConfirmDatePlugin({})]
 });
 
-// 현재 시간 조회 함수
-// function getCurrentTime() {
 
-//   let today = new Date();
+//검색 조건 저장 변수
+const FIRST_START_TIME   = ref('');    // 조회 버튼 누른 시간
+const vehicleNumber      = ref('');    // 차량번호
+const startDate          = ref('');    // 시작일 및 시작시간
+const endData            = ref('');    // 종료일 및 종료시간
 
-//   let year = today.getFullYear() //년
-//   let month = today.getMonth() < 10 ? `0${today.getMonth() + 1}`: today.getMonth() + 1; // 월
-//   let date = today.getDate() < 10 ? `0${today.getDate()}`: today.getDate(); // 일
+// ref 변수 모음
+const isFunction         = ref(true);  // 함수 실행 여부
+let responseData         = ref([]);    // 조회결과 데이터
 
-//   let hours = today.getHours() < 10 ? `0${today.getHours()}`: today.getHours(); // 시
-//   let minutes = today.getMinutes() < 10 ? `0${today.getMinutes()}`: today.getMinutes();  // 분
-//   let seconds = today.getSeconds() < 10 ? `0${today.getSeconds()}`: today.getSeconds();  // 초
-
-
-//   return `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
-// }
-
-// 차량 accelerometer 운행 데이터 조회 함수
+/**
+ * 조회 기간을 설정하여 차량 운행 데이터 조회
+ * @param vehicleNumber   차량 번호(String)
+ * @param startTime       시작일 및 시작시간(String) "2024-10-25 11:20:20"
+ * @param endTime         종료일 및 종료시간(String) "2024-10-25 11:20:20"
+ */
 async function getCoordinates(vehicleNumber, startTime, endTime) {
-  //
-  if (pointList.value.length){
-    pointList.value = [];
-    brakePoint.value = [];
-    brakeData.value = [];
-    searchAllData.value = [];
+  FIRST_START_TIME.value = startTime // 조회 버튼 누른 시간을 시작일로 셋팅
+	const URI = "http://localhost:3000/event/accelerometer"; // API 주소
+
+  //데이터 리스트 초기화
+  if (responseData.value.length) {
+    responseData.value  = []; // 조회결과 데이터 리스트 초기화
   }
-	const uri = "http://localhost:3000/event/accelerometer";
-	// const uri = API_URL;
+
+  // 검색 조건 params
 	const params = {
-		"number":`${vehicleNumber}`,
-		// "starttime": "2024-10-25 15:06:06.000",
-		// "endtime": "2024-10-25 15:45:06.000",
-    // "firststarttime": getCurrentTime(), //조회 버튼 누른 시간
-    "firststarttime": startTime,//조회 버튼 누른 시간
-		"starttime": startTime,
-		"endtime": endTime,
+		"number"          :`${vehicleNumber}`,
+    "firststarttime"  : FIRST_START_TIME,   // 조회 버튼을 누른 시간이며, 실시간 조회에서 사용(조회 페이지에서는 시작일로설정)
+		"starttime"       : startTime,          // 시작일 및 시작시간
+		"endtime"         : endTime,            // 종료일 및 종료시간
 	}
+
 	const queryString = new URLSearchParams(params).toString();
-	const requrl = `${uri}?${queryString}`;
-	try {
-		// axios API를 이용하여 api 호출
-		const response = await axios.get(requrl, {
-			// method: 'GET',
+	const requrl = `${URI}?${queryString}`;
+
+  try {
+		// axios를 이용하여 api 호출
+		const responses = await axios.get(requrl, {
 			headers: {
 				"Content-Type": "application/json",
 			}
-		}).then((responses) => {
-      return responses;
+		}).then((response) => {
+      return response;
     })
 
-		let data = response.data;
-		// console.log("data :" + response.data);
-
-    searchAllData.value.push(...data);
-    // 브레이크 포인트 데이터 가공을 위해 전체 데이터 전달
-    getEventData(data)
-
-		//운행 데이터 조회하여 좌표 값 데이터 가공
-		var coordinatesValue = data.map((items) => {
-			// data에서 좌표값만 답기
-			let lat = items.GPS_Latitude;
-			let lon = items.GPS_Longitude;
-
-			//자표값을 배열 형태로 반환
-			return new window.kakao.maps.LatLng(lat, lon);
-		});
-
-		pointList.value.push(...coordinatesValue);
-
+    if(!responses.data){
+      alert("존재하는 데이터가 없습니다.");
+    } else {
+      responseData.value.push(...responses.data);
+    };
 
 	} catch (error) {
+    // console.log(response);
 		console.log(error);
-		alert("존재하는 데이터가 없습니다.");
+		alert("Network Error 서버연결을 확인해주세요.");
 	};
-  // console.log("pointList :" + pointList.value);
-};
-
-
-function getEventData(datas) {
-  // console.log(`datas: ${datas}`)
-
-  // const items = datas.filter((data) => data.gubun === 'brake') // brakeData 추출
-
-  brakeData.value.push(...datas);
-
-  const values = datas.map((item, index) => {
-
-    const value = {
-      id: index,
-      latlng: new window.kakao.maps.LatLng(item.GPS_Latitude, item.GPS_Longitude),
-      gubun: item.gubun,
-      calc_value: item.calc_value
-    }
-    return value;
-  });
-
-  // console.log(...values);
-  // brakePoint.value.push(values);
-  brakePoint.value.push(...values);
-
 };
 
 
@@ -144,9 +93,6 @@ function getEventData(datas) {
 			<div class="input-box">
 				<input type="text" v-model="vehicleNumber" id="vehicle-number" placeholder="차량번호를 입력하세요">
 			</div>
-			<!-- <div class="input-box">
-				<input type="text" id="vehicle-date" placeholder="날짜">
-			</div> -->
       <div class="input-box">
         <flat-pickr
           v-model="startDate"
@@ -169,8 +115,9 @@ function getEventData(datas) {
 			</div>
 		</form>
   </section>
-  <MapView :pointList="pointList" :isFunction="isFunction" :eventPointData="brakePoint" :breakData="brakeData" :searchAllData />
-  <!-- <MapView :data="{pointList: pointList, isFunction:isFunction, brakePoint: brakePoint}" /> -->
+  <MapView
+    :isFunction="isFunction"
+    :responseData="responseData" />
 </template>
 
 <style scoped>

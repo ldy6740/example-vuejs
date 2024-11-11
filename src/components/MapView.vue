@@ -2,36 +2,50 @@
 import { ref, onMounted, watch, defineProps} from 'vue';
 const { VITE_KAKAO_MAP_KEY } = import.meta.env;
 
-const mapCountainer = ref(null);
-let breakStrong = ref(0);
-let breakMedium = ref(0);
-let breakWeak = ref(0);
-let breakSum = ref(0);
-let breakDeceleration = ref(0);
-let accelStrong = ref(0);
-let accelMedium = ref(0);
-let accelWeak = ref(0);
-let accelSum = ref(0);
-let accelDeceleration = ref(0);
-let totalMileage = ref(0);
+const mapCountainer     = ref(null);
 
-let showOverlay = ref(false);
-let overlayPosition = ref({top:0, left:0});
+// 대쉬보드 데이터 변수
+let breakStrong         = ref(0); // 브레이크 이벤트(강)
+let breakMedium         = ref(0); // 브레이크 이벤트(중)
+let breakWeak           = ref(0); // 브레이크 이벤트(약)
+let breakSum            = ref(0); // 브레이크 이벤트(계)
+let breakDeceleration   = ref(0); // 누적 감속 값(브레이크)
+let accelStrong         = ref(0); // 감속 이벤트(강)
+let accelMedium         = ref(0); // 감속 이벤트(중)
+let accelWeak           = ref(0); // 감속 이벤트(약)
+let accelSum            = ref(0); // 감속 이벤트(계)
+let accelDeceleration   = ref(0); // 누적 감속 값(가속도계)
+let totalMileage        = ref(0); // 총 주행거리 값
 
+let showOverlay         = ref(false);           // custom overlay 화면 표시 여부 true or false
+// let overlayPosition     = ref({top:0, left:0}); // custom overlay position 화면 좌표
+
+let map                 = null; // kakao map Object 변수
+
+// 이벤트 정보 데이터 변수
+let clickMarkerVehicleNumber = ref("-");
+let clickMarkerGubun         = ref("-");
+let clickMarkerCalcValue     = ref("-");
+
+// let polylineCoordsList  = ref([]); // Polyline Coordinates List 차량경로 좌표 리스트
+
+// props items
 const props = defineProps({
-  pointList: Array,
   isFunction: Boolean,
-  eventPointData: Array,
-  breakData: Array,
-  searchAllData: Array
+  responseData: Array
 });
 
+onMounted(() => {
+  loadKakaoMap(mapCountainer.value);
+})
 
+/**
+ * 지도 화면 대쉬보드 데이터 추출
+ */
 function dashboardData() {
-  let items = props.searchAllData;
-   // "brake" 데이터 추출
-   const breakList = items.filter((data) => data.gubun === 'brake');
-  if (breakList.length > 0) {
+  // "brake" 데이터 추출
+  const breakList = props.responseData.filter((data) => data.gubun === 'brake');
+  if (breakList.length) {
     breakStrong.value = breakList[0].Calc_Value_sum1;
     breakMedium.value = breakList[0].Calc_Value_sum2;
     breakWeak.value = breakList[0].Calc_Value_sum3;
@@ -40,8 +54,8 @@ function dashboardData() {
   }
 
   // "accel" 데이터 추출
-  const accelList = items.filter((data) => data.gubun === 'accel');
-  if (accelList.length > 0) {
+  const accelList = props.responseData.filter((data) => data.gubun === 'accel');
+  if (accelList.length) {
     accelStrong.value = accelList[0].Calc_Value_sum1;
     accelMedium.value = accelList[0].Calc_Value_sum2;
     accelWeak.value = accelList[0].Calc_Value_sum3;
@@ -51,12 +65,6 @@ function dashboardData() {
   }
 }
 
-
-let map;
-
-onMounted(() => {
-  loadKakaoMap(mapCountainer.value);
-})
 
 
 // 경로 투명도 조절
@@ -98,6 +106,7 @@ function optionValueChange(value) {
   })
 }
 
+// 운행경로를 지도에 표시하는 함수
 const drawPolyline = (pathCoordinates) => {
   // 이전 경로를 지우기 위해 기존 폴리라인 삭제
   if(props.isFunction) {
@@ -108,11 +117,11 @@ const drawPolyline = (pathCoordinates) => {
   //	지도에 선을 표시한다
   map.polyline = new window.kakao.maps.Polyline({
 		map									:	map, 										// 선을 표시할 지도 객체
-		path								:	pathCoordinates,							//	선을 구성하는 좌표 배열
-		strokeWeight				:	5,											//	선의 두께
-		strokeColor					:	"#FF0000",							//	선 색
-		strokeOpacity				:	opacityValue.value,										//	선 투명도
-		strokeStyle					:	"solid"									//	선 스타일
+		path								:	pathCoordinates,				// 경로 라인 좌표 리스트
+		strokeWeight				:	5,											// 선의 두께
+		strokeColor					:	"#FF0000",							// 선 색
+		strokeOpacity				:	opacityValue.value,			// 선 투명도
+		strokeStyle					:	"solid"									// 선 스타일
 	});
 
 };
@@ -135,37 +144,54 @@ const loadKakaoMap = (container) => {
   };
 };
 
+// Response Data를 Polyline 좌표값으로 가공
+function getPolylineCoords(data) {
+  let coordinatesValue = data.map((items) => {
+    // response data 에서 경로라인에 사용할 좌표 추출
+    let lat = items.GPS_Latitude;
+    let lon = items.GPS_Longitude;
+
+    // 좌표 값을 kakao map api polyline 좌표값으로 변환하여 반환
+    return new window.kakao.maps.LatLng(lat, lon);
+  });
+  drawPolyline(coordinatesValue) // 지도에 좌표 표시 함수로 데이터 전달
+}
+
+// Response Data를 Event 데이터로 가공
+function getEventData(data) {
+  const eventDatas = data.map((item) => {
+    const eventData = {
+      latlng: new window.kakao.maps.LatLng(item.GPS_Latitude, item.GPS_Longitude),
+      gubun: item.gubun,
+      calc_value: item.calc_value
+    }
+    return eventData;
+  });
+
+  eventPointMarker(eventDatas)
+}
+
+//props.responseData 데이터 변화 감지
 watch(
-  () => props.pointList,
-  (newList) => {
+  () => props.responseData,
+  (newResponseData) => {
     if (map) {
-      drawPolyline(newList);
+      getPolylineCoords(newResponseData);
+      getEventData(newResponseData)
       dashboardData();
     }
   },
   {deep: true}
 )
 
-// console.log(props.breakPoint);
-
-watch(
-  () => props.eventPointData,
-  (newPosition) => {
-    if(map) {
-      eventPointMarker(newPosition);
-    }
-  },
-  {deep: true}
-)
 
 
-let breakRawData = ref(null);
 let markers = [];
-let oldMaker = null;
+let oldMarker = null;
 let markerImages = null;
 let testMakerImg = null;
 
-function eventPointMarker(positions) {
+function eventPointMarker(eventDatas) {
 
   markers.forEach(marker => marker.setMap(null));
   markers = [];
@@ -176,7 +202,8 @@ function eventPointMarker(positions) {
   const imageSrc =  "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png";
 	const testImgSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png';
 
-  positions.forEach((position, index) => {
+  // 지도에 마커 생성
+  eventDatas.forEach((eventData, index) => {
     //	마커 이미지의 이미지 크기 입니다.
 	  var imageSize	=	new window.kakao.maps.Size(24, 35);
     //	마커 이미지를 생성합니다.
@@ -184,33 +211,27 @@ function eventPointMarker(positions) {
     testMakerImg = new window.kakao.maps.MarkerImage(testImgSrc, imageSize);
 
     Marker = new window.kakao.maps.Marker({
-      map						:	map,																	  //	마커를 표시할 지도
-      id            : position.id,
-      position			:	position.latlng,										//	마커를 표시할 위치
-      title					:	position.title,										  //	마커의 타이틀, 마커에 마우스를 올리면 타이틀이 표시됩니다.
-      image					:	position.gubun === 'accel'? testMakerImg : markerImages,
-      clickble      : true,
-			opacity				: 0.1
+      map				:	map,											        // 마커를 표시할 지도
+      position	:	eventData.latlng,				          // 마커를 표시할 위치
+      image			:	eventData.gubun === 'accel'
+                  ? testMakerImg : markerImages,    // 이벤트별 마커 이미지 구분
+      clickble  : true,                             // 마커 클릭이벤트 감지 옵션
     });
 
-    // console.log(positions[i]);
-
+    // 마커 클릭 이벤트 감지
     window.kakao.maps.event.addListener(Marker, 'click', function() {
+      clickMarkerVehicleNumber.value  = props.responseData[index].Vehicle_Number                          // 클릭한 마커의 차량번호 정보 추출
+      clickMarkerGubun.value          = props.responseData[index].gubun === 'brake' ? '브레이크' : '감속';  // 클릭한 마커의 이벤트 명 추출
+      clickMarkerCalcValue.value      = props.responseData[index].calc_value                              // 클릭한 마커의 감속정도 추출
 
-      breakRawData.value = props.breakData[index];
+      var imageSize	=	new window.kakao.maps.Size(34, 45); // 이미지 사이즈 지정
+      var markerImage	=	new window.kakao.maps.MarkerImage(imageSrc, imageSize); // 마커 이미지 생성
 
-      var imageSize	=	new window.kakao.maps.Size(34, 45);
-      //	마커 이미지를 생성합니다.
-      var markerImage	=	new window.kakao.maps.MarkerImage(imageSrc, imageSize);
-
-      // console.log(oldMaker);
-      if (oldMaker) {
-        oldMaker.setImage(markerImages);
+      if (oldMarker) {
+        oldMarker.setImage(markerImages); // oldMarker에 등록된 값이 있으면
       }
       this.setImage(markerImage);
-      oldMaker = this;
-
-
+      oldMarker = this;
       showOverlay.value = true;
     });
 
@@ -219,10 +240,14 @@ function eventPointMarker(positions) {
 }
 
 
-
 function hideOverlay() {
-  showOverlay.value = false;
-  oldMaker.setImage(markerImages);
+  // showOverlay.value = false;
+  // 클릭마커 정보 초기화
+  clickMarkerVehicleNumber.value = "-";
+  clickMarkerGubun.value = "-";
+  clickMarkerCalcValue.value = "-";
+
+  oldMarker.setImage(markerImages);
 }
 
 
@@ -233,73 +258,118 @@ function hideOverlay() {
 <template>
   <section class="map-area" ref="mapCountainer">
 		<article class="map-view" id="map">
+      <article  class="custom-overlay">
+        <span @click="hideOverlay" class="overlay-reset-btn">초기화</span>
+        <div class="overlay-view">
+          <p class="overlay-view-label">이벤트 정보</p>
+          <div class="overlay-item">
+            <p class="overlay-label">차량번호</p>
+            <p class="overlay-value">{{ clickMarkerVehicleNumber }}</p>
+          </div>
+          <div class="overlay-item">
+            <p class="overlay-label">이벤트명</p>
+            <p class="overlay-value">{{ clickMarkerGubun }}</p>
+          </div>
+          <div class="overlay-item">
+            <p class="overlay-label">감속정도</p>
+            <p class="overlay-value">{{ clickMarkerCalcValue }}</p>
+          </div>
+        </div>
+      </article>
 			<div class="dashboard-area">
-        <div class="dashboard-item">
-					<p class="item-label">브레이크 이벤트(강)</p>
-					<p class="item-value"> {{ breakStrong }}회</p>
-				</div>
-        <div class="dashboard-item">
-					<p class="item-label">브레이크 이벤트(중)</p>
-					<p class="item-value"> {{ breakMedium }}회</p>
-				</div>
-        <div class="dashboard-item">
-					<p class="item-label">브레이크 이벤트(약)</p>
-					<p class="item-value"> {{ breakWeak }}회</p>
-				</div>
-				<div class="dashboard-item">
-					<p class="item-label">브레이크 이벤트(총합)</p>
-					<p class="item-value"> {{ breakSum }}회</p>
-				</div>
-				<div class="dashboard-item">
-					<p class="item-label">누적 감속 값(브레이크)</p>
-					<p class="item-value">{{ breakDeceleration }}km/h</p>
-				</div>
-        <div class="dashboard-item">
-					<p class="item-label">감속 이벤트(강)</p>
-					<p class="item-value">{{ accelStrong }}회</p>
-				</div>
-        <div class="dashboard-item">
-					<p class="item-label">감속 이벤트(중)</p>
-					<p class="item-value">{{ accelMedium }}회</p>
-				</div>
-        <div class="dashboard-item">
-					<p class="item-label">감속 이벤트(약)</p>
-					<p class="item-value">{{ accelWeak }}회</p>
-				</div>
-				<div class="dashboard-item">
-					<p class="item-label">감속 이벤트(총합)</p>
-					<p class="item-value">{{ accelSum }}회</p>
-				</div>
-				<div class="dashboard-item">
-					<p class="item-label">누적 감속 값(가속도계)</p>
-					<p class="item-value">{{ accelDeceleration }}km/h</p>
-				</div>
-				<div class="dashboard-item">
-					<p class="item-label">총 주행거리</p>
-					<p class="item-value">{{ totalMileage }}km/h</p>
-				</div>
-        <div class="dashboard-item">
-					<p class="item-label">투명도 조절</p>
-					<p class="item-value">
-            <span @click="valueUp">+</span>
-            <span>{{ opacityValue }}</span>
-            <span @click="valueDow">-</span>
-          </p>
-				</div>
+        <div class="break-area">
+          <p class="break-area-label">브레이크 이벤트</p>
+          <div class="dashboard-item">
+            <p class="item-label">강</p>
+            <p class="item-value"> {{ breakStrong }}회</p>
+          </div>
+          <div class="dashboard-item">
+            <p class="item-label">중</p>
+            <p class="item-value"> {{ breakMedium }}회</p>
+          </div>
+          <div class="dashboard-item">
+            <p class="item-label">약</p>
+            <p class="item-value"> {{ breakWeak }}회</p>
+          </div>
+          <div class="dashboard-item">
+            <p class="item-label">계</p>
+            <p class="item-value"> {{ breakSum }}회</p>
+          </div>
+        </div>
+        <div class="break-deceleration">
+          <p class="break-deceleration-label">누적 감속 값(브레이크)</p>
+          <div class="dashboard-item">
+            <p class="item-label"></p>
+            <p class="item-value">{{ breakDeceleration }}km/h</p>
+          </div>
+        </div>
+        <div class="accelerator-area">
+          <p class="accelerator-area-label">감속 이벤트</p>
+          <div class="dashboard-item">
+            <p class="item-label">강</p>
+            <p class="item-value">{{ accelStrong }}회</p>
+          </div>
+          <div class="dashboard-item">
+            <p class="item-label">중</p>
+            <p class="item-value">{{ accelMedium }}회</p>
+          </div>
+          <div class="dashboard-item">
+            <p class="item-label">약</p>
+            <p class="item-value">{{ accelWeak }}회</p>
+          </div>
+          <div class="dashboard-item">
+            <p class="item-label">계</p>
+            <p class="item-value">{{ accelSum }}회</p>
+          </div>
+        </div>
+        <div class="break-deceleration">
+          <p class="break-deceleration-label">누적 감속 값(가속도계)</p>
+          <div class="dashboard-item">
+            <p class="item-label"></p>
+            <p class="item-value">{{ accelDeceleration }}km/h</p>
+          </div>
+        </div>
+        <div class="total-Mileage">
+          <p class="total-Mileage-label">총 주행거리</p>
+          <div class="dashboard-item">
+            <p class="item-label"></p>
+            <p class="item-value">{{ totalMileage }}km/h</p>
+          </div>
+        </div>
 			</div>
-		</article>
-    <article v-if="showOverlay" class="custom-overlay" :style="{ top: `${overlayPosition.top}px`, left: `${overlayPosition.left}px`, opacity: `${opacityValue}`}">
-      <span @click="hideOverlay">닫기</span> <br>
-      <div class="overlay-view">
-        <p class="overlay-label">감속정도</p>
-        <p class="overlay-value">{{ breakRawData.calc_value }}</p>
-        <div class="opacity-controll-box">
-          <span @click="valueUp">+</span>
-          <span>{{ opacityValue }}</span>
-          <span @click="valueDow">-</span>
+      <div class="style-controll-box">
+        <p class="style-controll-label">주행 경로 스타일</p>
+        <div class="style-controll-item color">
+          <p class="item-label">선색</p>
+          <p class="item-value">
+            <span style="background:#FF0000"></span>
+            <span style="background:#07AE07"></span>
+            <span style="background:#7A6FE0"></span>
+            <span style="background:#5AB1A3"></span>
+            <span style="background:#ED9F0F"></span>
+            <span style="background:#009DFF"></span>
+            <span style="background:#0015FF"></span>
+            <span style="background:#656565"></span>
+          </p>
+        </div>
+        <div class="style-controll-item opacity">
+          <p class="item-label">투명도</p>
+          <p class="item-value">
+            <span class="plus" @click="valueUp">+</span>
+            <span class="value">{{ opacityValue }}</span>
+            <span class="minus" @click="valueDow">-</span>
+          </p>
+        </div>
+        <div class="style-controll-item switch">
+          <p class="item-label">표시여부</p>
+          <p class="item-value">
+            <span class="on">ON</span>
+            <span>OFF</span>
+          </p>
         </div>
       </div>
-    </article>
+		</article>
+
 	</section>
 </template>
 
