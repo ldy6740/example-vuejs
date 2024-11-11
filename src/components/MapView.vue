@@ -2,32 +2,32 @@
 import { ref, onMounted, watch, defineProps} from 'vue';
 const { VITE_KAKAO_MAP_KEY } = import.meta.env;
 
-const mapCountainer     = ref(null);
+const mapCountainer          = ref(null);
 
 // 대쉬보드 데이터 변수
-let breakStrong         = ref(0); // 브레이크 이벤트(강)
-let breakMedium         = ref(0); // 브레이크 이벤트(중)
-let breakWeak           = ref(0); // 브레이크 이벤트(약)
-let breakSum            = ref(0); // 브레이크 이벤트(계)
-let breakDeceleration   = ref(0); // 누적 감속 값(브레이크)
-let accelStrong         = ref(0); // 감속 이벤트(강)
-let accelMedium         = ref(0); // 감속 이벤트(중)
-let accelWeak           = ref(0); // 감속 이벤트(약)
-let accelSum            = ref(0); // 감속 이벤트(계)
-let accelDeceleration   = ref(0); // 누적 감속 값(가속도계)
-let totalMileage        = ref(0); // 총 주행거리 값
+let breakStrong              = ref(0);         // 브레이크 이벤트(강)
+let breakMedium              = ref(0);         // 브레이크 이벤트(중)
+let breakWeak                = ref(0);         // 브레이크 이벤트(약)
+let breakSum                 = ref(0);         // 브레이크 이벤트(계)
+let breakDeceleration        = ref(0);         // 누적 감속 값(브레이크)
+let accelStrong              = ref(0);         // 감속 이벤트(강)
+let accelMedium              = ref(0);         // 감속 이벤트(중)
+let accelWeak                = ref(0);         // 감속 이벤트(약)
+let accelSum                 = ref(0);         // 감속 이벤트(계)
+let accelDeceleration        = ref(0);         // 누적 감속 값(가속도계)
+let totalMileage             = ref(0);         // 총 주행거리 값
 
-let showOverlay         = ref(false);           // custom overlay 화면 표시 여부 true or false
-// let overlayPosition     = ref({top:0, left:0}); // custom overlay position 화면 좌표
+let showOverlay              = ref(false);     // custom overlay 화면 표시 여부 true or false
 
-let map                 = null; // kakao map Object 변수
+let map                      = null;           // kakao map Object 변수
 
 // 이벤트 정보 데이터 변수
-let clickMarkerVehicleNumber = ref("-");
-let clickMarkerGubun         = ref("-");
-let clickMarkerCalcValue     = ref("-");
+let clickMarkerVehicleNumber = ref("-");       // 마커를 클릭하면 해당 위치의 차량번호 값
+let clickMarkerGubun         = ref("-");       // 마커를 클릭하면 해당 위치의 gubun 값 [브레이크 or 감속]
+let clickMarkerCalcValue     = ref("-");       // 마커를 클릭하면 해당 위치의 감속정도 값
 
-// let polylineCoordsList  = ref([]); // Polyline Coordinates List 차량경로 좌표 리스트
+let colorValue               = ref("rgb(255, 0, 0)");
+
 
 // props items
 const props = defineProps({
@@ -65,6 +65,23 @@ function dashboardData() {
   }
 }
 
+function colorClick() {
+  let colorItem = document.querySelectorAll('.color-bg-pick');
+  console.log('ho');
+  colorItem.forEach((item) => {
+    item.addEventListener('click', (e) => {
+      colorItem.forEach((remove) => {
+        remove.classList.remove('on');
+      })
+      e.target.classList.add('on');
+      colorValue.value = getComputedStyle(e.target).backgroundColor;
+    })
+  });
+
+  map.polyline.setOptions({
+    strokeColor : colorValue.value,
+  });
+}
 
 
 // 경로 투명도 조절
@@ -119,7 +136,7 @@ const drawPolyline = (pathCoordinates) => {
 		map									:	map, 										// 선을 표시할 지도 객체
 		path								:	pathCoordinates,				// 경로 라인 좌표 리스트
 		strokeWeight				:	5,											// 선의 두께
-		strokeColor					:	"#FF0000",							// 선 색
+		strokeColor					:	"rgb(255, 0, 0)",							// 선 색
 		strokeOpacity				:	opacityValue.value,			// 선 투명도
 		strokeStyle					:	"solid"									// 선 스타일
 	});
@@ -128,7 +145,7 @@ const drawPolyline = (pathCoordinates) => {
 
 const loadKakaoMap = (container) => {
   const script = document.createElement('script');
-  script.src = `https:////dapi.kakao.com/v2/maps/sdk.js?appkey=${VITE_KAKAO_MAP_KEY}&autoload=false`
+  script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${VITE_KAKAO_MAP_KEY}&autoload=false`
   document.head.appendChild(script);
 
   script.onload = () => {
@@ -349,17 +366,17 @@ function hideOverlay() {
 			</div>
       <div class="style-controll-box">
         <p class="style-controll-label">주행 경로 스타일</p>
-        <div class="style-controll-item color">
+        <div class="style-controll-item color" @click="colorClick">
           <p class="item-label">선색</p>
           <p class="item-value">
-            <span style="background:#FF0000"></span>
-            <span style="background:#07AE07"></span>
-            <span style="background:#7A6FE0"></span>
-            <span style="background:#5AB1A3"></span>
-            <span style="background:#ED9F0F"></span>
-            <span style="background:#009DFF"></span>
-            <span style="background:#0015FF"></span>
-            <span style="background:#656565"></span>
+            <span class="color-bg-pick on" style="background:#FF0000"></span>
+            <span class="color-bg-pick" style="background:#07AE07"></span>
+            <span class="color-bg-pick" style="background:#7A6FE0"></span>
+            <span class="color-bg-pick" style="background:#5AB1A3"></span>
+            <span class="color-bg-pick" style="background:#ED9F0F"></span>
+            <span class="color-bg-pick" style="background:#009DFF"></span>
+            <span class="color-bg-pick" style="background:#0015FF"></span>
+            <span class="color-bg-pick" style="background:#656565"></span>
           </p>
         </div>
         <div class="style-controll-item opacity">
