@@ -28,7 +28,7 @@
 
 <template>
   <section class="setting-view-box">
-    <ul>
+    <ul class="tab-menu">
       <li
         v-for="(tab, index) in TAB_TITLE"
         :key="index"
@@ -37,15 +37,46 @@
       >
         {{ tab === 'BreakSettingView'? "브레이크" : "감속" }}
       </li>
+      <li class="tab-title" @click="$emit('closeEvent')">닫기</li>
     </ul>
-    <component :is="tabView"></component>
+
+    <component :is="tabView" @save-event="$emit('closeEvent')"></component>
   </section>
 </template>
 
 <style lang="scss">
-  .tab-title {
-    &.active {
-      border:1px solid red;
+  .setting-view-box {
+    background: #fff;
+    border:1px solid #ededed;
+    box-shadow: 1px 1px 20px 1px #8a8a8a;
+    position: absolute;
+    top: 140px;
+    left: 10px;
+    z-index: 9999;
+    width: 380px;
+    border-radius: 10px;
+    padding: 20px;
+    .tab-menu {
+      display: flex;
+      .tab-title {
+        &.active {
+          // box-shadow: 0 0 0 1px #0063c0 inset;
+          background: #666666;
+          color: #fff;
+        }
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        row-gap: 10px;
+        margin-right: 10px;
+        width: 90px;
+        height: 30px;
+        padding: 5px 10px;
+        border-radius: 5px;
+        background: #ededed;
+        cursor: pointer;
+      }
     }
   }
+
 </style>

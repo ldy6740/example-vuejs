@@ -34,6 +34,7 @@ const endData            = ref('');    // 종료일 및 종료시간
 // ref 변수 모음
 const isFunction         = ref(true);  // 함수 실행 여부
 let responseData         = ref([]);    // 조회결과 데이터
+const showSettingBox     = ref(false); // 설정박스 화면 표시 여부
 
 /**
  * 조회 기간을 설정하여 차량 운행 데이터 조회
@@ -89,6 +90,9 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
 
 <template>
  	<section class="search-area">
+    <div class="button-box">
+      <button :class="['setting-view-open', { on: showSettingBox }]" @click.prevent="showSettingBox = true">설정</button>
+    </div>
 		<!-- 조회 화면 -->
 		<form id="form">
 			<div class="input-box">
@@ -114,14 +118,16 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
 			<div class="button-box">
 				<button @click.prevent="getCoordinates(vehicleNumber, startDate, endData)" type="submit" id="submit">조회</button>
 			</div>
+
 		</form>
   </section>
-
-  <SettingView></SettingView>
 
   <MapView
     :isFunction="isFunction"
     :responseData="responseData" />
+
+  <SettingView v-if="showSettingBox" @close-event="showSettingBox = false"></SettingView>
+
 </template>
 
 <style scoped>

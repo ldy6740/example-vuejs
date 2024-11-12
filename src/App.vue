@@ -100,8 +100,21 @@ export default {
 	height: 50px;
 	display: flex;
 	align-items: center;
-	justify-content: end;
+	justify-content: space-between;
+  & > .button-box {
+    & > .setting-view-open {
+      &.on {
+        background: #575757;
+        color: #fff;
+      }
+      width: 100px;
+      height: 40px;
+      border:1px solid #ededed;
+      border-radius: 5px;
+    }
+  }
 }
+
 
 #form {
 	display: flex;
@@ -249,7 +262,6 @@ export default {
       font-size: 11px;
     }
     .style-controll-item {
-      border:1px solid red;
       background: #fff;
       border:1px solid #b9b9b9;
       border-radius: 13px;
