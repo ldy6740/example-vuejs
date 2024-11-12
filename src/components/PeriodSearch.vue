@@ -1,6 +1,7 @@
 <script setup>
 //component import
 import MapView from './MapView.vue';
+import SettingView from './SettingView.vue';
 
 // imports
 import {ref} from 'vue';
@@ -115,6 +116,9 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
 			</div>
 		</form>
   </section>
+
+  <SettingView></SettingView>
+
   <MapView
     :isFunction="isFunction"
     :responseData="responseData" />

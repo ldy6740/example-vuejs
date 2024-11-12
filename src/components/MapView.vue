@@ -1,5 +1,7 @@
 <script setup>
 import { ref, onMounted, watch, defineProps} from 'vue';
+import marker_blue from '../assets/images/marker_blue.png';
+import marker_red from '../assets/images/marker_red.png';
 const { VITE_KAKAO_MAP_KEY } = import.meta.env;
 
 const mapCountainer          = ref(null);
@@ -45,45 +47,70 @@ onMounted(() => {
  */
 function dashboardData() {
   // "brake" 데이터 추출
-  const breakList = props.responseData.filter((data) => data.gubun === 'brake');
+  const breakList             = props.responseData.filter((data) => data.gubun === 'brake');
   if (breakList.length) {
-    breakStrong.value = breakList[0].Calc_Value_sum1;
-    breakMedium.value = breakList[0].Calc_Value_sum2;
-    breakWeak.value = breakList[0].Calc_Value_sum3;
-    breakSum.value = Number(breakStrong.value) + Number(breakMedium.value) + Number(breakWeak.value);
-    breakDeceleration.value = breakList[0].calc_value_sum.toFixed(2);
+    breakStrong.value         = breakList[0].Calc_Value_sum1;
+    breakMedium.value         = breakList[0].Calc_Value_sum2;
+    breakWeak.value           = breakList[0].Calc_Value_sum3;
+    breakSum.value            = Number(breakStrong.value) + Number(breakMedium.value) + Number(breakWeak.value);
+    breakDeceleration.value   = breakList[0].calc_value_sum.toFixed(2);
   }
 
   // "accel" 데이터 추출
-  const accelList = props.responseData.filter((data) => data.gubun === 'accel');
+  const accelList             = props.responseData.filter((data) => data.gubun === 'accel');
   if (accelList.length) {
-    accelStrong.value = accelList[0].Calc_Value_sum1;
-    accelMedium.value = accelList[0].Calc_Value_sum2;
-    accelWeak.value = accelList[0].Calc_Value_sum3;
-    accelSum.value = Number(accelStrong.value) + Number(accelMedium.value) + Number(accelWeak.value);
-    accelDeceleration.value = accelList[0].calc_value_sum.toFixed(2);
-    totalMileage.value = accelList[0].Distance_Traveled;
+    accelStrong.value         = accelList[0].Calc_Value_sum1;
+    accelMedium.value         = accelList[0].Calc_Value_sum2;
+    accelWeak.value           = accelList[0].Calc_Value_sum3;
+    accelSum.value            = Number(accelStrong.value) + Number(accelMedium.value) + Number(accelWeak.value);
+    accelDeceleration.value   = accelList[0].calc_value_sum.toFixed(2);
+    totalMileage.value        = accelList[0].Distance_Traveled;
   }
 }
 
+/**
+ * 차량경로 선색 변경 함수
+ */
 function colorClick() {
-
-
-  let colorItem = document.querySelectorAll('.color-bg-pick');
-  colorItem.forEach((item) => {
-    item.addEventListener('click', (e) => {
-      colorItem.forEach((remove) => {
-        remove.classList.remove('on');
+  if (map.polyline) {
+    let colorItem = document.querySelectorAll('.color-bg-pick');
+    colorItem.forEach((item) => {
+      item.addEventListener('click', (e) => {
+        // on class 가 있으면 삭제
+        colorItem.forEach((remove) => {
+          remove.classList.remove('on');
+        })
+        e.target.classList.add('on'); // target에 on 클래스 삽입
+        colorValue.value = getComputedStyle(e.target).backgroundColor; // target의 inline style 값 추출
       })
-      e.target.classList.add('on');
-      colorValue.value = getComputedStyle(e.target).backgroundColor;
-    })
-  });
+    });
 
-  map.polyline.setOptions({
-    strokeColor : colorValue.value,
-  });
+    map.polyline.setOptions({
+      strokeColor : colorValue.value,
+    });
+  }
 }
+
+function isShowPolyline() {
+  if (map.polyline) {
+    let isShowBtn = document.querySelectorAll('.is-show-polyline');
+
+    isShowBtn.forEach((item) => {
+      item.addEventListener('click', (e) => {
+        isShowBtn.forEach((remove) => {
+          remove.classList.remove('on');
+        })
+        e.target.classList.add('on');
+        if (e.target.innerText === 'ON') {
+          optionValueChange(opacityValue.value);
+        } else {
+          optionValueChange(0);
+        }
+      })
+    })
+  }
+}
+
 
 
 // 경로 투명도 조절
@@ -92,31 +119,35 @@ let number = 10;
 let value = '';
 
 function valueUp() {
-  if (opacityValue.value == 1) {
-    return;
-  }
-  if (number < 10) {
-    number += 1;
-    value = `0.${number}`;
-  }
-  // console.log(value === '0.10'? 10 : value);
-  opacityValue.value = Number(value === '0.10'? 1 : value);
-  // map.polyline.setOpacity(opacityValue.value);
+  if(map.polyline) {
+    if (opacityValue.value == 1) {
+      return;
+    }
+    if (number < 10) {
+      number += 1;
+      value = `0.${number}`;
+    }
+    // console.log(value === '0.10'? 10 : value);
+    opacityValue.value = Number(value === '0.10'? 1 : value);
+    // map.polyline.setOpacity(opacityValue.value);
 
-  optionValueChange(opacityValue.value)
+    optionValueChange(opacityValue.value)
+  }
 };
 function valueDow() {
-  if(opacityValue.value == 0) {
-    return;
-  }
+  if(map.polyline) {
+    if(opacityValue.value == 0) {
+      return;
+    }
 
-  if (number <= 10) {
-    number -= 1;
-    value = `0.${number}`;
-  }
+    if (number <= 10) {
+      number -= 1;
+      value = `0.${number}`;
+    }
 
-  opacityValue.value = Number(value === '0.0'? 0 : value);
-  optionValueChange(opacityValue.value)
+    opacityValue.value = Number(value === '0.0'? 0 : value);
+    optionValueChange(opacityValue.value)
+  }
 };
 
 function optionValueChange(value) {
@@ -189,7 +220,8 @@ function getEventData(data) {
     const eventData = {
       latlng: new window.kakao.maps.LatLng(item.GPS_Latitude, item.GPS_Longitude),
       gubun: item.gubun,
-      calc_value: item.calc_value
+      calc_value: item.calc_value,
+      opacity: item.Calc_Value_opacity
     }
     return eventData;
   });
@@ -206,6 +238,7 @@ watch(
       getEventData(newResponseData)
       dashboardData();
       colorClick();
+      isShowPolyline();
     }
   },
   {deep: true}
@@ -215,37 +248,39 @@ watch(
 
 let markers = [];
 let oldMarker = null;
-let markerImages = null;
-let testMakerImg = null;
+let markerAccelImages = null;
+let markerBreakImages = null;
 /**
  * Event 발생 지점 Marker 표시 및 마커 클릭시 이벤트 정보 표시
  * @param {*} eventDatas
  */
 function eventPointMarker(eventDatas) {
 
-  markers.forEach(marker => marker.setMap(null));
-  markers = [];
+  markers.forEach(marker => marker.setMap(null)); // 마커 표시 초기화
+  markers = []; // 마커 배열 초기화
 
   let Marker = null;
 
   //마커 이미지 주소
-  const imageSrc =  "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png";
-	const testImgSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png';
-
+  // const accelImageSrc =  "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_blue.png";
+  const accelImageSrc = marker_blue
+	// const breakImageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png';
+	const breakImageSrc = marker_red
   // 지도에 마커 생성
   eventDatas.forEach((eventData, index) => {
     //	마커 이미지의 이미지 크기 입니다.
-	  var imageSize	=	new window.kakao.maps.Size(24, 35);
+	  var imageSize	=	new window.kakao.maps.Size(32, 35);
     //	마커 이미지를 생성합니다.
-	  markerImages	=	new window.kakao.maps.MarkerImage(imageSrc, imageSize);
-    testMakerImg = new window.kakao.maps.MarkerImage(testImgSrc, imageSize);
+	  markerAccelImages	=	new window.kakao.maps.MarkerImage(accelImageSrc, imageSize);
+    markerBreakImages = new window.kakao.maps.MarkerImage(breakImageSrc, imageSize);
 
     Marker = new window.kakao.maps.Marker({
       map				:	map,											        // 마커를 표시할 지도
       position	:	eventData.latlng,				          // 마커를 표시할 위치
       image			:	eventData.gubun === 'accel'
-                  ? testMakerImg : markerImages,    // 이벤트별 마커 이미지 구분
+                  ? markerAccelImages : markerBreakImages,    // 이벤트별 마커 이미지 구분
       clickble  : true,                             // 마커 클릭이벤트 감지 옵션
+      opacity   : Number(eventData.opacity),
     });
 
     // 마커 클릭 이벤트 감지
@@ -255,10 +290,10 @@ function eventPointMarker(eventDatas) {
       clickMarkerCalcValue.value      = props.responseData[index].calc_value                              // 클릭한 마커의 감속정도 추출
 
       var imageSize	=	new window.kakao.maps.Size(34, 45); // 이미지 사이즈 지정
-      var markerImage	=	new window.kakao.maps.MarkerImage(imageSrc, imageSize); // 마커 이미지 생성
+      var markerImage	=	new window.kakao.maps.MarkerImage(accelImageSrc, imageSize); // 마커 이미지 생성
 
       if (oldMarker) {
-        oldMarker.setImage(markerImages); // oldMarker에 등록된 값이 있으면
+        oldMarker.setImage(markerAccelImages); // oldMarker에 등록된 값이 있으면
       }
       this.setImage(markerImage);
       oldMarker = this;
@@ -277,7 +312,7 @@ function hideOverlay() {
   clickMarkerGubun.value = "-";
   clickMarkerCalcValue.value = "-";
 
-  oldMarker.setImage(markerImages);
+  oldMarker.setImage(markerAccelImages);
 }
 
 
@@ -390,11 +425,11 @@ function hideOverlay() {
             <span class="minus" @click="valueDow">-</span>
           </p>
         </div>
-        <div class="style-controll-item switch">
+        <div class="style-controll-item switch" @click="isShowPolyline">
           <p class="item-label">표시여부</p>
           <p class="item-value">
-            <span class="on">ON</span>
-            <span>OFF</span>
+            <span class="is-show-polyline on">ON</span>
+            <span class="is-show-polyline">OFF</span>
           </p>
         </div>
       </div>
