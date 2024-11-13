@@ -85,13 +85,39 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
 	};
 };
 
+let settingValue = ref([]);
+
+/**
+ * 설정 버튼을 누르면 설정 되어있는 셋팅 값을 가져 온다.
+ */
+async function getSettingValue() {
+  const API_URI = "http://localhost:3000/event/value";
+
+  const responses = await axios.get(API_URI, {
+    headers: {
+      "Content-Type": "application/json",
+    }
+  }).then((response) => {
+    return response;
+  });
+
+  if(!responses.data) {
+    alert("존재하는 데이터가 없습니다.");
+  } else {
+    settingValue.value.push(...responses.data);
+  }
+
+  showSettingBox.value = true;
+}
+
 
 </script>
 
 <template>
  	<section class="search-area">
     <div class="button-box">
-      <button :class="['setting-view-open', { on: showSettingBox }]" @click.prevent="showSettingBox = true">설정</button>
+      <!-- <button :class="['setting-view-open', { on: showSettingBox }]" @click.prevent="showSettingBox = true">설정</button> -->
+      <button :class="['setting-view-open', { on: showSettingBox }]" @click.prevent="getSettingValue">설정</button>
     </div>
 		<!-- 조회 화면 -->
 		<form id="form">
@@ -118,7 +144,6 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
 			<div class="button-box">
 				<button @click.prevent="getCoordinates(vehicleNumber, startDate, endData)" type="submit" id="submit">조회</button>
 			</div>
-
 		</form>
   </section>
 
@@ -126,7 +151,12 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
     :isFunction="isFunction"
     :responseData="responseData" />
 
-  <SettingView v-if="showSettingBox" @close-event="showSettingBox = false"></SettingView>
+  <SettingView
+    v-if="showSettingBox"
+    @close-event="showSettingBox = false"
+    :settingValue="settingValue"
+  >
+  </SettingView>
 
 </template>
 
