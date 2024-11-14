@@ -8,7 +8,7 @@
   })
 
 
-
+  // 설정 값 ref 모음
   let accelStrongMin     = ref("");
   let accelStrongMax     = ref("");
   let accelStrongOpcity  = ref("");
@@ -34,79 +34,83 @@
   let breakWeakOpcity    = ref("");
 
 
-  // console.log(props.settingValues[0].Min_Value);
-
-  accelStrongMin.value = props.settingValues[0].Min_Value
-  accelStrongMax.value = props.settingValues[0].Max_Value
+  // PeriodSearch.vue 에서 DB에 저장된 감속정도 기준값을 조회하여
+  // 자식 컴포넌트 SettingView.vue -> AccelSettingView.vue 로 데이터를 전달하여
+  // 설정 값 ref 변수에 담는다.
+  accelStrongMin.value    = props.settingValues[0].Min_Value
+  accelStrongMax.value    = props.settingValues[0].Max_Value
   accelStrongOpcity.value = props.settingValues[0].opacity
 
-  accelMediumMin.value = props.settingValues[1].Min_Value
-  accelMediumMax.value = props.settingValues[1].Max_Value
+  accelMediumMin.value    = props.settingValues[1].Min_Value
+  accelMediumMax.value    = props.settingValues[1].Max_Value
   accelMediumOpcity.value = props.settingValues[1].opacity
 
-  accelWeakMin.value = props.settingValues[2].Min_Value
-  accelWeakMax.value = props.settingValues[2].Max_Value
-  accelWeakOpcity.value = props.settingValues[2].opacity
+  accelWeakMin.value      = props.settingValues[2].Min_Value
+  accelWeakMax.value      = props.settingValues[2].Max_Value
+  accelWeakOpcity.value   = props.settingValues[2].opacity
 
-  breakStrongMin.value = props.settingValues[3].Min_Value
-  breakStrongMax.value = props.settingValues[3].Max_Value
+  breakStrongMin.value    = props.settingValues[3].Min_Value
+  breakStrongMax.value    = props.settingValues[3].Max_Value
   breakStrongOpcity.value = props.settingValues[3].opacity
 
-  breakMediumMin.value = props.settingValues[4].Min_Value
-  breakMediumMax.value = props.settingValues[4].Max_Value
+  breakMediumMin.value    = props.settingValues[4].Min_Value
+  breakMediumMax.value    = props.settingValues[4].Max_Value
   breakMediumOpcity.value = props.settingValues[4].opacity
 
-  breakWeakMin.value = props.settingValues[5].Min_Value
-  breakWeakMax.value = props.settingValues[5].Max_Value
-  breakWeakOpcity.value = props.settingValues[5].opacity
+  breakWeakMin.value      = props.settingValues[5].Min_Value
+  breakWeakMax.value      = props.settingValues[5].Max_Value
+  breakWeakOpcity.value   = props.settingValues[5].opacity
 
 
-  let settingList   = ref([
-    {
-      "event":"accelerometer",
-      "step" : "강",
-      "min" : accelStrongMin.value,
-      "max" : accelStrongMax.value,
-      "opacity" : accelStrongOpcity.value,
-    },
-    {
-      "event":"accelerometer",
-      "step" : "중",
-      "min" : accelMediumMin.value,
-      "max" : accelMediumMax.value,
-      "opacity" : accelMediumOpcity.value,
-    },
-    {
-      "event":"accelerometer",
-      "step" : "약",
-      "min" : accelWeakMin.value,
-      "max" : accelWeakMax.value,
-      "opacity" : accelWeakOpcity.value,
-    },
-    {
-      "event":"brake",
-      "step" : "강",
-      "min" : breakStrongMin.value,
-      "max" : breakStrongMax.value,
-      "opacity" : breakStrongOpcity.value,
-    },
-    {
-      "event":"brake",
-      "step" : "중",
-      "min" : breakMediumMin.value,
-      "max" : breakMediumMax.value,
-      "opacity" : breakMediumOpcity.value,
-    },
-    {
-      "event":"brake",
-      "step" : "약",
-      "min" : breakWeakMin.value,
-      "max" : breakWeakMax.value,
-      "opacity" : breakWeakOpcity.value,
-    },
-  ]);
+let settingList   = ref([
+  {
+    "event":"accelerometer",
+    "step" : "강",
+    "min" : accelStrongMin.value,
+    "max" : accelStrongMax.value,
+    "opacity" : accelStrongOpcity.value,
+  },
+  {
+    "event":"accelerometer",
+    "step" : "중",
+    "min" : accelMediumMin.value,
+    "max" : accelMediumMax.value,
+    "opacity" : accelMediumOpcity.value,
+  },
+  {
+    "event":"accelerometer",
+    "step" : "약",
+    "min" : accelWeakMin.value,
+    "max" : accelWeakMax.value,
+    "opacity" : accelWeakOpcity.value,
+  },
+  {
+    "event":"brake",
+    "step" : "강",
+    "min" : breakStrongMin.value,
+    "max" : breakStrongMax.value,
+    "opacity" : breakStrongOpcity.value,
+  },
+  {
+    "event":"brake",
+    "step" : "중",
+    "min" : breakMediumMin.value,
+    "max" : breakMediumMax.value,
+    "opacity" : breakMediumOpcity.value,
+  },
+  {
+    "event":"brake",
+    "step" : "약",
+    "min" : breakWeakMin.value,
+    "max" : breakWeakMax.value,
+    "opacity" : breakWeakOpcity.value,
+  },
+]);
 
-  function valueCheck() {
+/**
+ * 사용자가 입력한 셋팅값이 숫자인지 체크하고 JSON형태로 변황
+ */
+function valueCheck() {
   let testValue = { items: [] };
   let newValue = settingList.value.map((value) => {
     if (
@@ -133,22 +137,54 @@
   saveValue(testValue);
 }
 
-  async function saveValue(value) {
+/**
+ * 사용자가 입력한 설정 값을 받아 API 통신을 이용하여 데이터 전달하여 DB에 저장
+ * @param {Arrar} values 사용자 페이지에서 입력한 설정 값
+ */
+async function saveValue(values) {
   const API_URI = "http://localhost:3000/event/code";
   const options = {
     headers: {
       "content-type": "application/json",
     },
   };
-  console.log(JSON.stringify(value));
+  console.log(JSON.stringify(values));
   axios
-    .post(API_URI, JSON.stringify(value), options)
+    .post(
+      API_URI,
+      JSON.stringify(values),
+      options
+    )
     .then(function (response) {
       console.log("response : " + response);
     })
     .catch(function (error) {
       console.log("error : " + error);
     });
+}
+
+console.log(typeof(1) === Number)
+
+function numverCheck(value) {
+  let numValue = Number(value); // String 으로 전달되는 입력값을 Number type 으로 변환
+
+  if (typeof(numValue) === Number && isNaN(value) === false && ) {
+    return true;
+  };
+
+  return false;
+}
+
+function validationRuleCheck(value) {
+
+  // numver check
+
+  // 최대값은 중복되지 않아야 한다.
+
+  // opacity 는 1 - 0 사이값이 입력 되어야 한다.
+
+  console.log(value);
+
 }
 </script>
 
@@ -165,15 +201,15 @@
           <p class="value-title">{{ list.Event === "accelerometer" ? "감속":"브레이크" }} <br> ({{ list.Step }})</p>
           <div class="input-box">
             <label for="min">최소값</label>
-            <input type="text" id="min" placeholder="최소값" v-model="settingList[index].min">
+            <input type="text" id="min" @change="validationRuleCheck(settingList[index].min)" placeholder="최소값" v-model="settingList[index].min">
           </div>
           <div class="input-box">
             <label for="max">최대값</label>
-            <input type="text" id="max" placeholder="최대값" v-model="settingList[index].max">
+            <input type="text" id="max" @change="validationRuleCheck(settingList[index].max)" placeholder="최대값" v-model="settingList[index].max">
           </div>
           <div class="input-box">
             <label for="opacity">투명도</label>
-            <input type="text" id="opacity" placeholder="투명도" v-model="settingList[index].opacity">
+            <input type="text" id="opacity" @change="validationRuleCheck(settingList[index].opacity)" placeholder="투명도" v-model="settingList[index].opacity">
           </div>
         </div>
       </div>
