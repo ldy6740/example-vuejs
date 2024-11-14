@@ -1,32 +1,64 @@
 <script setup>
-  import { ref, useAttrs } from "vue";
+  import { ref, defineProps } from "vue";
   import axios from 'axios';
 
-  let settingValues = useAttrs().settingValue
+  // let settingValues = useAttrs().settingValue
+  const props = defineProps({
+    settingValues: Array
+  })
 
-  let accelStrongMin     = ref(settingValues[0].Min_Value);
-  let accelStrongMax     = ref(settingValues[0].Max_Value);
-  let accelStrongOpcity  = ref(settingValues[0].opacity);
 
-  let accelMediumMin     = ref(settingValues[2].Min_Value);
-  let accelMediumMax     = ref(settingValues[2].Min_Value);
-  let accelMediumOpcity  = ref(settingValues[2].Min_Value);
 
-  let accelWeakMin       = ref(settingValues[1].Min_Value);
-  let accelWeakMax       = ref(settingValues[1].Min_Value);
-  let accelWeakOpcity    = ref(settingValues[1].Min_Value);
+  let accelStrongMin     = ref("");
+  let accelStrongMax     = ref("");
+  let accelStrongOpcity  = ref("");
 
-  let breakStrongMin     = ref(settingValues[3].Min_Value);
-  let breakStrongMax     = ref(settingValues[3].Min_Value);
-  let breakStrongOpcity  = ref(settingValues[3].Min_Value);
+  let accelMediumMin     = ref("");
+  let accelMediumMax     = ref("");
+  let accelMediumOpcity  = ref("");
 
-  let breakMediumMin     = ref(settingValues[5].Min_Value);
-  let breakMediumMax     = ref(settingValues[5].Min_Value);
-  let breakMediumOpcity  = ref(settingValues[5].Min_Value);
+  let accelWeakMin       = ref("");
+  let accelWeakMax       = ref("");
+  let accelWeakOpcity    = ref("");
 
-  let breakWeakMin       = ref(settingValues[4].Min_Value);
-  let breakWeakMax       = ref(settingValues[4].Min_Value);
-  let breakWeakOpcity    = ref(settingValues[4].Min_Value);
+  let breakStrongMin     = ref("");
+  let breakStrongMax     = ref("");
+  let breakStrongOpcity  = ref("");
+
+  let breakMediumMin     = ref("");
+  let breakMediumMax     = ref("");
+  let breakMediumOpcity  = ref("");
+
+  let breakWeakMin       = ref("");
+  let breakWeakMax       = ref("");
+  let breakWeakOpcity    = ref("");
+
+
+  // console.log(props.settingValues[0].Min_Value);
+
+  accelStrongMin.value = props.settingValues[0].Min_Value
+  accelStrongMax.value = props.settingValues[0].Max_Value
+  accelStrongOpcity.value = props.settingValues[0].opacity
+
+  accelMediumMin.value = props.settingValues[1].Min_Value
+  accelMediumMax.value = props.settingValues[1].Max_Value
+  accelMediumOpcity.value = props.settingValues[1].opacity
+
+  accelWeakMin.value = props.settingValues[2].Min_Value
+  accelWeakMax.value = props.settingValues[2].Max_Value
+  accelWeakOpcity.value = props.settingValues[2].opacity
+
+  breakStrongMin.value = props.settingValues[3].Min_Value
+  breakStrongMax.value = props.settingValues[3].Max_Value
+  breakStrongOpcity.value = props.settingValues[3].opacity
+
+  breakMediumMin.value = props.settingValues[4].Min_Value
+  breakMediumMax.value = props.settingValues[4].Max_Value
+  breakMediumOpcity.value = props.settingValues[4].opacity
+
+  breakWeakMin.value = props.settingValues[5].Min_Value
+  breakWeakMax.value = props.settingValues[5].Max_Value
+  breakWeakOpcity.value = props.settingValues[5].opacity
 
 
   let settingList   = ref([
@@ -75,53 +107,49 @@
   ]);
 
   function valueCheck() {
-    let newValue = settingList.value.map((value) => {
-      if(isNaN(value.max) === true || isNaN(value.min) === true || isNaN(value.opacity === true)) {
-        alert('숫자가 아닌 값이 들어 있습니다.');
-        return;
-      }
+  let testValue = { items: [] };
+  let newValue = settingList.value.map((value) => {
+    if (
+      isNaN(value.max) === true ||
+      isNaN(value.min) === true ||
+      isNaN(value.opacity === true)
+    ) {
+      alert("숫자가 아닌 값이 들어 있습니다.");
+      return;
+    }
 
-      return ({
-        "item":
-        [
-          {
-            "event": value.event,
-            "step" : value.opacity,
-            // "min" : parseFloat(value.min),
-            // "max" : parseFloat(value.max),
-            // "opacity" : parseFloat(value.opacity),
-            "min" : value.min,
-            "max" : value.max,
-            "opacity" : value.opacity,
-          }
-        ]
-      })
+    return {
+      event: value.event,
+      step: value.step,
+      min: value.min.toString(),
+      max: value.max.toString(),
+      opacity: value.opacity.toString(),
+    };
+  });
+
+  testValue.items.push(...newValue);
+  // console.log(testValue);
+
+  saveValue(testValue);
+}
+
+  async function saveValue(value) {
+  const API_URI = "http://localhost:3000/event/code";
+  const options = {
+    headers: {
+      "content-type": "application/json",
+    },
+  };
+  console.log(JSON.stringify(value));
+  axios
+    .post(API_URI, JSON.stringify(value), options)
+    .then(function (response) {
+      console.log("response : " + response);
+    })
+    .catch(function (error) {
+      console.log("error : " + error);
     });
-
-    // saveValue(newValue);
-    console.log(newValue);
-
-  }
-
-  // async function saveValue(values) {
-  //   const API_URI = "http://localhost:3000/event/code";
-  //   console.log(values);
-
-  //   const responses = await axios.post(API_URI, {
-
-  //     },
-  //     {
-  //       headers: {
-  //         'Content-Type': 'multipart/form-data'
-  //       }
-  //     }
-  //   ).then((response)=>{
-  //     return response
-  //   })
-
-  //   console.log(responses);
-
-  // }
+}
 </script>
 
 <template>
@@ -130,7 +158,7 @@
     <p class="setting-title">감속 및 브레이크 이벤트 기준값 설정</p>
     <div class="setting-value-list">
       <div class="value-write-box"
-        v-for="(list, index) in $attrs.settingValue"
+        v-for="(list, index) in props.settingValues"
         :key="index"
       >
         <div>
@@ -154,15 +182,6 @@
       <button class="close-btn"  @click="$emit('closeEvent')">닫기</button>
       <button class="save-btn" @click.prevent="valueCheck">저장</button>
     </div>
-
-    <!-- <div
-      v-for="(value, index) in $attrs.settingValue"
-      :key="index"
-    >
-      <div  v-if="value.Event === 'accelerometer'">
-        <input type="text" :value="value.Event">
-      </div>
-    </div> -->
   </section>
 </template>
 

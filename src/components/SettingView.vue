@@ -1,12 +1,11 @@
 <script setup>
-  import { ref, defineProps } from "vue";
+  import { defineProps } from "vue";
   // import BreakSettingView from "./tabs/BreakSettingView.vue";
   import AccelSettingView from "./tabs/AccelSettingView.vue";
 
   const props = defineProps({
     settingValue: Array
   });
-
 </script>
 
 <template>
@@ -22,7 +21,7 @@
       </li>
     </ul> -->
 
-    <AccelSettingView @close-event="$emit('closeEvent')" :settingValue="settingValue"></AccelSettingView>
+    <AccelSettingView @close-event="$emit('closeEvent')" :setting-values="settingValue"></AccelSettingView>
   </section>
 </template>
 

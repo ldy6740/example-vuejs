@@ -26,7 +26,7 @@ const config        = ref({
 
 
 //검색 조건 저장 변수
-const FIRST_START_TIME   = ref('');    // 조회 버튼 누른 시간
+let FIRST_START_TIME     = ref('');    // 조회 버튼 누른 시간
 const vehicleNumber      = ref('');    // 차량번호
 const startDate          = ref('');    // 시작일 및 시작시간
 const endData            = ref('');    // 종료일 및 종료시간
@@ -54,7 +54,7 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
   // 검색 조건 params
 	const params = {
 		"number"          :`${vehicleNumber}`,
-    "firststarttime"  : FIRST_START_TIME,   // 조회 버튼을 누른 시간이며, 실시간 조회에서 사용(조회 페이지에서는 시작일로설정)
+    "firststarttime"  : FIRST_START_TIME.value,           // 조회 버튼을 누른 시간이며, 실시간 조회에서 사용(조회 페이지에서는 시작일로설정)
 		"starttime"       : startTime,          // 시작일 및 시작시간
 		"endtime"         : endTime,            // 종료일 및 종료시간
 	}
@@ -93,19 +93,28 @@ let settingValue = ref([]);
 async function getSettingValue() {
   const API_URI = "http://localhost:3000/event/value";
 
-  const responses = await axios.get(API_URI, {
+  if(settingValue.value.length) {
+    settingValue.value = [];
+  }
+
+  // if(!settingValue.value.length) {
+  let responses = await axios.get(API_URI, {
     headers: {
       "Content-Type": "application/json",
     }
   }).then((response) => {
     return response;
-  });
+  }).catch((error) => {
+    console.log(error);
+  })
 
   if(!responses.data) {
     alert("존재하는 데이터가 없습니다.");
   } else {
+    console.log(responses.data);
     settingValue.value.push(...responses.data);
   }
+
 
   showSettingBox.value = true;
 }
