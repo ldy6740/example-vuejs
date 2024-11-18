@@ -165,17 +165,19 @@ async function saveValue(values) {
 
 console.log(typeof(1) === Number)
 
+
+// NOTE validation rule 체크하면은 입력 값을 넘겨주고, 넘겨준 값이 형식에 맞지 않으면 포커스를 올겨주고 어떤 rule에 맞지 않는지 사용자에서 알려줘야 한다.
 function numverCheck(value) {
   let numValue = Number(value); // String 으로 전달되는 입력값을 Number type 으로 변환
 
-  if (typeof(numValue) === Number && isNaN(value) === false && ) {
+  if (typeof(numValue) === 'number' && isNaN(value) === false) {
     return true;
   };
 
   return false;
 }
 
-function validationRuleCheck(value) {
+function validationRuleCheck(item, value) {
 
   // numver check
 
@@ -184,7 +186,20 @@ function validationRuleCheck(value) {
   // opacity 는 1 - 0 사이값이 입력 되어야 한다.
 
   console.log(value);
-
+  console.log(item.target);
+	if (item.target.value) {
+		let isNumber = numverCheck(item.target.value);
+		if(isNumber) {
+			console.log('숫자 입니다. ');
+		} else {
+			alert("숫자만 입력 가능합니다.");
+			item.target.value = "";
+			item.target.focus();
+		}
+	} else {
+		alert("빈값을 입력할 수 없습니다. 값을 입력해주세요");
+		item.target.focus();
+	}
 }
 </script>
 
@@ -201,15 +216,15 @@ function validationRuleCheck(value) {
           <p class="value-title">{{ list.Event === "accelerometer" ? "감속":"브레이크" }} <br> ({{ list.Step }})</p>
           <div class="input-box">
             <label for="min">최소값</label>
-            <input type="text" id="min" @change="validationRuleCheck(settingList[index].min)" placeholder="최소값" v-model="settingList[index].min">
+            <input type="text" id="min" @change="validationRuleCheck($event, settingList[index].min)" placeholder="최소값" v-model="settingList[index].min">
           </div>
           <div class="input-box">
             <label for="max">최대값</label>
-            <input type="text" id="max" @change="validationRuleCheck(settingList[index].max)" placeholder="최대값" v-model="settingList[index].max">
+            <input type="text" id="max" @change="validationRuleCheck($event, settingList[index].max)" placeholder="최대값" v-model="settingList[index].max">
           </div>
           <div class="input-box">
             <label for="opacity">투명도</label>
-            <input type="text" id="opacity" @change="validationRuleCheck(settingList[index].opacity)" placeholder="투명도" v-model="settingList[index].opacity">
+            <input type="text" id="opacity" @change="validationRuleCheck($event, settingList[index].opacity)" placeholder="투명도" v-model="settingList[index].opacity">
           </div>
         </div>
       </div>
