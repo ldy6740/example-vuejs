@@ -111,7 +111,7 @@ async function getSettingValue() {
   if(!responses.data) {
     alert("존재하는 데이터가 없습니다.");
   } else {
-    console.log(responses.data);
+    // console.log(responses.data);
     settingValue.value.push(...responses.data);
   }
 
