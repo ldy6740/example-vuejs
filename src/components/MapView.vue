@@ -45,9 +45,9 @@ onMounted(() => {
 /**
  * 지도 화면 대쉬보드 데이터 추출
  */
-function dashboardData() {
+function dashboardData(newResponseData) {
   // "brake" 데이터 추출
-  const breakList             = props.responseData.filter((data) => data.gubun === 'brake');
+  const breakList             = newResponseData.filter((data) => data.gubun === 'brake');
   if (breakList.length) {
     breakStrong.value         = breakList[0].Calc_Value_sum1;
     breakMedium.value         = breakList[0].Calc_Value_sum2;
@@ -57,7 +57,7 @@ function dashboardData() {
   }
 
   // "accel" 데이터 추출
-  const accelList             = props.responseData.filter((data) => data.gubun === 'accel');
+  const accelList             = newResponseData.filter((data) => data.gubun === 'accel');
   if (accelList.length) {
     accelStrong.value         = accelList[0].Calc_Value_sum1;
     accelMedium.value         = accelList[0].Calc_Value_sum2;
@@ -236,7 +236,7 @@ watch(
     if (map) {
       getPolylineCoords(newResponseData);
       getEventData(newResponseData)
-      dashboardData();
+      dashboardData(newResponseData);
       colorClick();
       isShowPolyline();
     }
@@ -262,9 +262,7 @@ function eventPointMarker(eventDatas) {
   let Marker = null;
 
   //마커 이미지 주소
-  // const accelImageSrc =  "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_blue.png";
   const accelImageSrc = marker_blue
-	// const breakImageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png';
 	const breakImageSrc = marker_red
   // 지도에 마커 생성
   eventDatas.forEach((eventData, index) => {

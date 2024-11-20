@@ -4,17 +4,16 @@ import MapView from './MapView.vue';
 import axios from 'axios';
 
 
-let pointList = ref([]);
+let responseData = ref([]);
 const isFunction = ref(false);
 
 let FS_START_TIME = "";
 let START_TIME = "";
 let END_TIME = "";
 
-// 현재 시간 조회 함수
-function getCurrentTime() {
-
-	let today = new Date();
+// 시간 포맷 변경 함수 들어온 시간 데이터를 "yyyy-MM-dd hh:mm:ss" 형태로 변형한다.
+function getFormatDate(dateValue) {
+	let today = dateValue;
 
 	let year = today.getFullYear() //년
 	let month = today.getMonth() < 10 ? `0${today.getMonth() + 1}`: today.getMonth() + 1; // 월
@@ -29,81 +28,109 @@ function getCurrentTime() {
 }
 
 // 조회 버튼 첫번째 클릭
+// function firstSearch() {
+//   // 차량 번호
+//   let vehicleNumber = document.querySelector('#vehicle-number').value;
+
+//   let firstStartTime = new Date();
+//   firstStartTime.setSeconds(firstStartTime.getSeconds() - 30)
+//   // 최초 시작 시간 설정
+//   FS_START_TIME = getFormatDate(firstStartTime);
+// 	START_TIME = getFormatDate(firstStartTime);
+//   END_TIME = getFormatDate(new Date());
+
+//   getCoordinates(vehicleNumber, START_TIME, END_TIME);
+//   realTimeCheck(vehicleNumber);
+// }
+
+// 테스트를 위한 코드 구성 이전 시간 기준 데이터 조회 테스트
 function firstSearch() {
   // 차량 번호
   let vehicleNumber = document.querySelector('#vehicle-number').value;
 
+  let firstStartTime = new Date("2024-11-05 13:20:00");
+  firstStartTime.setSeconds(firstStartTime.getSeconds() - 30)
   // 최초 시작 시간 설정
-  FS_START_TIME = getCurrentTime();
-	START_TIME = getCurrentTime();
-  END_TIME = START_TIME;
+  FS_START_TIME = getFormatDate(firstStartTime);
+	START_TIME = getFormatDate(firstStartTime);
+  END_TIME = getFormatDate(new Date("2024-11-05 13:20:00"));
 
   getCoordinates(vehicleNumber, START_TIME, END_TIME);
   realTimeCheck(vehicleNumber);
 }
 
+// function realTimeCheck(vehicleNumber) {
+//   // 실시간인 경우 10초에 한번씩 자동 조회
+// 	setInterval(() => {
+// 		START_TIME = END_TIME;
+// 		END_TIME = getFormatDate(new Date());
+
+// 		getCoordinates(vehicleNumber, START_TIME, END_TIME);
+// 	}, 10000);
+
+// }
 
 function realTimeCheck(vehicleNumber) {
-
   // 실시간인 경우 10초에 한번씩 자동 조회
 	setInterval(() => {
+    let testDate = new Date(END_TIME);
+    testDate.setSeconds(testDate.getSeconds() + 10);
 		START_TIME = END_TIME;
-		END_TIME = getCurrentTime();
+		END_TIME = getFormatDate(testDate);
 
 		getCoordinates(vehicleNumber, START_TIME, END_TIME);
 	}, 10000);
 
-
 }
 
-// 차량 accelerometer 운행 데이터 조회 함수
+/**
+ * 조회 기간을 설정하여 차량 운행 데이터 조회
+ * @param vehicleNumber   차량 번호(String)
+ * @param startTime       시작일 및 시작시간(String) "2024-10-25 11:20:20"
+ * @param endTime         종료일 및 종료시간(String) "2024-10-25 11:20:20"
+ */
 async function getCoordinates(vehicleNumber, startTime, endTime) {
-	const uri = "http://localhost:3000/event/accelerometer";
-	// const uri = API_URL;
+	const URI = "http://localhost:3000/event/accelerometer"; // API 주소
+
+  // //데이터 리스트 초기화
+  // if (responseData.value.length) {
+  //   responseData.value  = []; // 조회결과 데이터 리스트 초기화
+  // }
+
+  // 검색 조건 params
 	const params = {
-		"number":`${vehicleNumber}`,
-		// "starttime": "2024-11-05 12:00:00",
-		// "endtime": "2024-11-05 14:00:00",
-    "firststarttime": FS_START_TIME,
-		"starttime": startTime,
-		"endtime": endTime,
+		"number"          :`${vehicleNumber}`,
+    "firststarttime"  : FS_START_TIME,           // 조회 버튼을 누른 시간이며, 실시간 조회에서 사용(조회 페이지에서는 시작일로설정)
+		"starttime"       : startTime,          // 시작일 및 시작시간
+		"endtime"         : endTime,            // 종료일 및 종료시간
 	}
+
 	const queryString = new URLSearchParams(params).toString();
-	const requrl = `${uri}?${queryString}`;
-	try {
-		// fetch API를 이용하여 api 호출
-		const response = await axios.get(requrl, {
-			// method: 'GET',
+	const requrl = `${URI}?${queryString}`;
+
+  try {
+		// axios를 이용하여 api 호출
+		const responses = await axios.get(requrl, {
 			headers: {
 				"Content-Type": "application/json",
 			}
-		}).then((responses) => {
-      return responses;
+		}).then((response) => {
+      return response;
     })
 
-		let data = response.data;
-		// console.log("data :" + response.data);
-
-		//운행 데이터 조회하여 좌표 값 데이터 가공
-		var coordinatesValue = data.map((items) => {
-			// data에서 좌표값만 답기
-			let lat = items.GPS_Latitude;
-			let lon = items.GPS_Longitude
-
-			//자표값을 배열 형태로 반환
-			return new window.kakao.maps.LatLng(lat, lon);
-		});
-
-		pointList.value.push(...coordinatesValue);
-
+    if(!responses.data){
+      console.log('존재하는 데이터가 없습니다');
+      // alert("존재하는 데이터가 없습니다.");
+    } else {
+      responseData.value.push(...responses.data);
+    };
 
 	} catch (error) {
+    // console.log(response);
 		console.log(error);
-		alert("존재하는 데이터가 없습니다.")
+		alert("Network Error 서버연결을 확인해주세요.");
 	};
-  // console.log("pointList :" + pointList.value);
 };
-
 
 </script>
 
@@ -120,7 +147,7 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
 			</div>
 		</form>
 	</section>
-  <MapView :pointList="pointList" :isFunction="isFunction" />
+  <MapView :responseData="responseData" :isFunction="isFunction" />
 
 </template>
 
