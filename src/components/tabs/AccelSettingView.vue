@@ -146,7 +146,9 @@ console.log(newDateValue);
  * @param {Arrar} values 사용자 페이지에서 입력한 설정 값
  */
 async function saveValue(values) {
-  const API_URI = "http://localhost:3000/event/code";
+  const API_URI = "http://221.164.108.130:8088/event/code";
+  //NOTE const API_URI = "http://221.164.108.130:8088/event/code"; 서버 컴퓨터로 옮겼을 경우 해당 주소로 변경
+
   const options = {
     headers: {
       "content-type": "application/json",

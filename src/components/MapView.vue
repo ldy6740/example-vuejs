@@ -19,7 +19,7 @@ let accelSum                 = ref(0);         // 감속 이벤트(계)
 let accelDeceleration        = ref(0);         // 누적 감속 값(가속도계)
 let totalMileage             = ref(0);         // 총 주행거리 값
 
-let showOverlay              = ref(false);     // custom overlay 화면 표시 여부 true or false
+// let showOverlay              = ref(false);     // custom overlay 화면 표시 여부 true or false
 
 let map                      = null;           // kakao map Object 변수
 
@@ -49,22 +49,22 @@ function dashboardData(newResponseData) {
   // "brake" 데이터 추출
   const breakList             = newResponseData.filter((data) => data.gubun === 'brake');
   if (breakList.length) {
-    breakStrong.value         = breakList[0].Calc_Value_sum1;
-    breakMedium.value         = breakList[0].Calc_Value_sum2;
-    breakWeak.value           = breakList[0].Calc_Value_sum3;
+    breakStrong.value         = breakList[breakList.length - 1].Calc_Value_sum1;
+    breakMedium.value         = breakList[breakList.length - 1].Calc_Value_sum2;
+    breakWeak.value           = breakList[breakList.length - 1].Calc_Value_sum3;
     breakSum.value            = Number(breakStrong.value) + Number(breakMedium.value) + Number(breakWeak.value);
-    breakDeceleration.value   = breakList[0].calc_value_sum.toFixed(2);
+    breakDeceleration.value   = breakList[breakList.length - 1].calc_value_sum.toFixed(2);
   }
 
   // "accel" 데이터 추출
   const accelList             = newResponseData.filter((data) => data.gubun === 'accel');
   if (accelList.length) {
-    accelStrong.value         = accelList[0].Calc_Value_sum1;
-    accelMedium.value         = accelList[0].Calc_Value_sum2;
-    accelWeak.value           = accelList[0].Calc_Value_sum3;
+    accelStrong.value         = accelList[accelList.length - 1].Calc_Value_sum1;
+    accelMedium.value         = accelList[accelList.length - 1].Calc_Value_sum2;
+    accelWeak.value           = accelList[accelList.length - 1].Calc_Value_sum3;
     accelSum.value            = Number(accelStrong.value) + Number(accelMedium.value) + Number(accelWeak.value);
-    accelDeceleration.value   = accelList[0].calc_value_sum.toFixed(2);
-    totalMileage.value        = accelList[0].Distance_Traveled;
+    accelDeceleration.value   = accelList[accelList.length - 1].calc_value_sum.toFixed(2);
+    totalMileage.value        = accelList[accelList.length - 1].Distance_Traveled;
   }
 }
 
@@ -155,14 +155,16 @@ function optionValueChange(value) {
     strokeOpacity : value,
   })
 }
-
 // 운행경로를 지도에 표시하는 함수
 const drawPolyline = (pathCoordinates) => {
   // 이전 경로를 지우기 위해 기존 폴리라인 삭제
-  if(props.isFunction) {
-    if (map && map.polyline) {
-      map.polyline.setMap(null);
-    }
+  // if(props.isFunction) {
+  //   if (map && map.polyline) {
+  //     map.polyline.setMap(null);
+  //   }
+  // }
+  if (map && map.polyline) {
+    map.polyline.setMap(null);
   }
   //	지도에 선을 표시한다
   map.polyline = new window.kakao.maps.Polyline({
@@ -247,7 +249,7 @@ watch(
 
 
 let markers = [];
-let oldMarker = null;
+// let oldMarker = null;
 let markerAccelImages = null;
 let markerBreakImages = null;
 /**
@@ -287,15 +289,18 @@ function eventPointMarker(eventDatas) {
       clickMarkerGubun.value          = props.responseData[index].gubun === 'brake' ? '브레이크' : '감속';  // 클릭한 마커의 이벤트 명 추출
       clickMarkerCalcValue.value      = props.responseData[index].calc_value                              // 클릭한 마커의 감속정도 추출
 
-      var imageSize	=	new window.kakao.maps.Size(34, 45); // 이미지 사이즈 지정
-      var markerImage	=	new window.kakao.maps.MarkerImage(accelImageSrc, imageSize); // 마커 이미지 생성
+      // let imageChange = props.responseData[index].gubun === 'brake' ? markerBreakImages : markerAccelImages
 
-      if (oldMarker) {
-        oldMarker.setImage(markerAccelImages); // oldMarker에 등록된 값이 있으면
-      }
-      this.setImage(markerImage);
-      oldMarker = this;
-      showOverlay.value = true;
+      // var imageSize	=	new window.kakao.maps.Size(34, 45); // 이미지 사이즈 지정
+      // var markerImage	=	new window.kakao.maps.MarkerImage(imageChange, imageSize); // 마커 이미지 생성
+      // console.log(imageChange);
+
+      // if (oldMarker) {
+      //   oldMarker.setImage(props.responseData[index].gubun === 'brake' ? markerBreakImages : markerAccelImages); // oldMarker에 등록된 값이 있으면
+      // }
+      // this.setImage(markerImage);
+      // oldMarker = this;
+      // showOverlay.value = true;
     });
 
     markers.push(Marker);
@@ -310,7 +315,7 @@ function hideOverlay() {
   clickMarkerGubun.value = "-";
   clickMarkerCalcValue.value = "-";
 
-  oldMarker.setImage(markerAccelImages);
+  // oldMarker.setImage(clickMarkerGubun.value === 'brake' ? markerBreakImages : markerAccelImages);
 }
 
 

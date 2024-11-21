@@ -44,7 +44,8 @@ const showSettingBox     = ref(false); // 설정박스 화면 표시 여부
  */
 async function getCoordinates(vehicleNumber, startTime, endTime) {
   FIRST_START_TIME.value = startTime // 조회 버튼 누른 시간을 시작일로 셋팅
-	const URI = "http://localhost:3000/event/accelerometer"; // API 주소
+	const URI = "http://221.164.108.130:8088/event/accelerometer"; // API 주소
+  //NOTE const URI = "http://221.164.108.130:8088/event/accelerometer"; 서버 컴퓨터로 옮겼을 경우 해당 주소로 변경
 
   //데이터 리스트 초기화
   if (responseData.value.length) {
@@ -91,7 +92,8 @@ let settingValue = ref([]);
  * 설정 버튼을 누르면 설정 되어있는 셋팅 값을 가져 온다.
  */
 async function getSettingValue() {
-  const API_URI = "http://localhost:3000/event/value";
+  const API_URI = "http://221.164.108.130:8088/event/value";
+  //NOTE const API_URI = "http://221.164.108.130:8088/event/value"; 서버 컴퓨터로 옮겼을 경우 해당 주소로 변경
 
   if(settingValue.value.length) {
     settingValue.value = [];

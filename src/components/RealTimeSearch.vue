@@ -1,9 +1,9 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onUnmounted } from 'vue';
 import MapView from './MapView.vue';
 import axios from 'axios';
 
-
+let autoSearch   = null;
 let responseData = ref([]);
 const isFunction = ref(false);
 
@@ -72,7 +72,7 @@ function firstSearch() {
 
 function realTimeCheck(vehicleNumber) {
   // 실시간인 경우 10초에 한번씩 자동 조회
-	setInterval(() => {
+	autoSearch = setInterval(() => {
     let testDate = new Date(END_TIME);
     testDate.setSeconds(testDate.getSeconds() + 10);
 		START_TIME = END_TIME;
@@ -82,6 +82,10 @@ function realTimeCheck(vehicleNumber) {
 	}, 10000);
 
 }
+// 페이지 이탈시 실시간 조회 종료
+onUnmounted(() => {
+  clearInterval(autoSearch);
+});
 
 /**
  * 조회 기간을 설정하여 차량 운행 데이터 조회
@@ -90,7 +94,8 @@ function realTimeCheck(vehicleNumber) {
  * @param endTime         종료일 및 종료시간(String) "2024-10-25 11:20:20"
  */
 async function getCoordinates(vehicleNumber, startTime, endTime) {
-	const URI = "http://localhost:3000/event/accelerometer"; // API 주소
+	const URI = "http://221.164.108.130:8088/event/accelerometer"; // API 주소
+  //NOTE const URI = "http://221.164.108.130:8088/event/accelerometer"; 서버 컴퓨터로 옮겼을 경우 해당 주소로 변경
 
   // //데이터 리스트 초기화
   // if (responseData.value.length) {
