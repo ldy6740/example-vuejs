@@ -48,9 +48,9 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
   //NOTE const URI = "http://221.164.108.130:8088/event/accelerometer"; 서버 컴퓨터로 옮겼을 경우 해당 주소로 변경
 
   //데이터 리스트 초기화
-  if (responseData.value.length) {
-    responseData.value  = []; // 조회결과 데이터 리스트 초기화
-  }
+  // if (responseData.value.length) {
+  //   responseData.value  = []; // 조회결과 데이터 리스트 초기화
+  // }
 
   // 검색 조건 params
 	const params = {
@@ -72,10 +72,12 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
 		}).then((response) => {
       return response;
     })
-
     if(!responses.data){
       alert("존재하는 데이터가 없습니다.");
     } else {
+      if(responseData.value) {
+        responseData.value = [];
+      }
       responseData.value.push(...responses.data);
     };
 

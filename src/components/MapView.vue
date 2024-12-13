@@ -256,9 +256,12 @@ let markerBreakImages = null;
  * @param {*} eventDatas
  */
 function eventPointMarker(eventDatas) {
-
-  markers.forEach(marker => marker.setMap(null)); // 마커 표시 초기화
-  markers = []; // 마커 배열 초기화
+// NOTE 해당 함수가 조회 버튼을 누르면 두번 실행 됨, 최초 1회는 정상,, 이후 조회 버튼을 클릭하면 첫번째 시도에서 데이터 없음.. 두번째 시도에 데이터가 전달 되어 watch에서 데이터 변화를 감지하고 함수 실행 getEventData -> eventPointMarker 순으로 함수 실행
+  console.log('start marker');
+  markers.forEach(marker => marker.setMap(null));
+  if (markers) {
+    markers = [];
+  }
 
   let Marker = null;
 
@@ -273,6 +276,7 @@ function eventPointMarker(eventDatas) {
 	  markerAccelImages	=	new window.kakao.maps.MarkerImage(accelImageSrc, imageSize);
     markerBreakImages = new window.kakao.maps.MarkerImage(breakImageSrc, imageSize);
 
+    // Marker 생성
     Marker = new window.kakao.maps.Marker({
       map				:	map,											        // 마커를 표시할 지도
       position	:	eventData.latlng,				          // 마커를 표시할 위치
@@ -287,78 +291,26 @@ function eventPointMarker(eventDatas) {
       clickMarkerVehicleNumber.value  = props.responseData[index].Vehicle_Number                          // 클릭한 마커의 차량번호 정보 추출
       clickMarkerGubun.value          = props.responseData[index].gubun === 'brake' ? '브레이크' : '감속';  // 클릭한 마커의 이벤트 명 추출
       clickMarkerCalcValue.value      = props.responseData[index].calc_value                              // 클릭한 마커의 감속정도 추출
-
-      // let imageChange = props.responseData[index].gubun === 'brake' ? markerBreakImages : markerAccelImages
-
-      // var imageSize	=	new window.kakao.maps.Size(34, 45); // 이미지 사이즈 지정
-      // var markerImage	=	new window.kakao.maps.MarkerImage(imageChange, imageSize); // 마커 이미지 생성
-      // console.log(imageChange);
-
-      // if (oldMarker) {
-      //   oldMarker.setImage(props.responseData[index].gubun === 'brake' ? markerBreakImages : markerAccelImages); // oldMarker에 등록된 값이 있으면
-      // }
-      // this.setImage(markerImage);
-      // oldMarker = this;
-      // showOverlay.value = true;
     });
-
+    // console.log(Marker);
     markers.push(Marker);
-
-    // console.log(Marker.getImage().ok.slice(19).indexOf("."));
   });
-
-  // let newMarkers = markers.map((item) => {
-  //   return {
-  //     ...item,
-  //     gubun : item.getImage().ok.slice(19).indexOf(".") === 10 ? "break":"accel",
-  //   }
-  // })
-
-  // sliceMarker(newMarkers);
-  console.log(markers);
-
   const id1 = document.getElementById('id1');
-  // const id2 = document.getElementById('id2');
 
   id1.addEventListener('click', () => {
-    console.log('click');
-    markers.forEach((item) => {
-      if(item.getImage().ok.slice(19).indexOf(".") === 10) {
-        console.log(item.getVisible());
-        // item.setVisible(false);
+    console.log('id1 click')
+    markers.map((item) => {
+      if (item.getImage().ok.slice(19).indexOf('.') === 10) {
+        if(!item.getVisible()) {
+          item.setVisible(true);
+        } else {
+          item.setVisible(false);
+        }
       }
     })
   });
 
-  // id2.addEventListener('click', () => {
-  //   markers.forEach((item) => {
-  //     if(item.getImage().ok.slice(19).indexOf(".") === 11) {
-  //       item.setVisible(false);
-  //     }
-  //   })
-  // });
 }
-
-
-// function sliceMarker(marker) {
-
-//   let breakMarker = [];
-//   let accelMarker = [];
-
-//   marker.forEach((item) => {
-//     if(item.gubun === 'break') {
-//       breakMarker.push(item);
-//     } else {
-//       accelMarker.push(item);
-//     }
-//   });
-
-//   console.log(breakMarker);
-//   console.log(accelMarker);
-
-// }
-
-
 
 function hideOverlay() {
   // showOverlay.value = false;
