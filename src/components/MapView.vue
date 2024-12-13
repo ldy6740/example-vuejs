@@ -247,7 +247,6 @@ watch(
 )
 
 
-
 let markers = [];
 // let oldMarker = null;
 let markerAccelImages = null;
@@ -304,8 +303,61 @@ function eventPointMarker(eventDatas) {
     });
 
     markers.push(Marker);
+
+    // console.log(Marker.getImage().ok.slice(19).indexOf("."));
   });
+
+  // let newMarkers = markers.map((item) => {
+  //   return {
+  //     ...item,
+  //     gubun : item.getImage().ok.slice(19).indexOf(".") === 10 ? "break":"accel",
+  //   }
+  // })
+
+  // sliceMarker(newMarkers);
+  console.log(markers);
+
+  const id1 = document.getElementById('id1');
+  // const id2 = document.getElementById('id2');
+
+  id1.addEventListener('click', () => {
+    console.log('click');
+    markers.forEach((item) => {
+      if(item.getImage().ok.slice(19).indexOf(".") === 10) {
+        console.log(item.getVisible());
+        // item.setVisible(false);
+      }
+    })
+  });
+
+  // id2.addEventListener('click', () => {
+  //   markers.forEach((item) => {
+  //     if(item.getImage().ok.slice(19).indexOf(".") === 11) {
+  //       item.setVisible(false);
+  //     }
+  //   })
+  // });
 }
+
+
+// function sliceMarker(marker) {
+
+//   let breakMarker = [];
+//   let accelMarker = [];
+
+//   marker.forEach((item) => {
+//     if(item.gubun === 'break') {
+//       breakMarker.push(item);
+//     } else {
+//       accelMarker.push(item);
+//     }
+//   });
+
+//   console.log(breakMarker);
+//   console.log(accelMarker);
+
+// }
+
 
 
 function hideOverlay() {
@@ -404,6 +456,8 @@ function hideOverlay() {
             <p class="item-value">{{ totalMileage }}km/h</p>
           </div>
         </div>
+        <button id="id1">test1</button>
+        <!-- <button id="id2">test2</button> -->
 			</div>
       <div class="style-controll-box">
         <p class="style-controll-label">주행 경로 스타일</p>

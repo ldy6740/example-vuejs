@@ -2,10 +2,12 @@
 import { ref, onUnmounted } from 'vue';
 import MapView from './MapView.vue';
 import axios from 'axios';
+import SettingView from './SettingView.vue';
 
 let autoSearch   = null;
 let responseData = ref([]);
 const isFunction = ref(false);
+const showSettingBox     = ref(false); // 설정박스 화면 표시 여부
 
 let FS_START_TIME = "";
 let START_TIME = "";
@@ -137,11 +139,49 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
 	};
 };
 
+
+let settingValue = ref([]);
+/**
+ * 설정 버튼을 누르면 설정 되어있는 셋팅 값을 가져 온다.
+ */
+async function getSettingValue() {
+  const API_URI = "http://221.164.108.130:8088/event/value";
+  //NOTE const API_URI = "http://221.164.108.130:8088/event/value"; 서버 컴퓨터로 옮겼을 경우 해당 주소로 변경
+
+  if(settingValue.value.length) {
+    settingValue.value = [];
+  }
+
+  // if(!settingValue.value.length) {
+  let responses = await axios.get(API_URI, {
+    headers: {
+      "Content-Type": "application/json",
+    }
+  }).then((response) => {
+    return response;
+  }).catch((error) => {
+    console.log(error);
+  })
+
+  if(!responses.data) {
+    alert("존재하는 데이터가 없습니다.");
+  } else {
+    // console.log(responses.data);
+    settingValue.value.push(...responses.data);
+  }
+
+
+  showSettingBox.value = true;
+}
 </script>
 
 
 <template>
  	<section class="search-area">
+    <div class="button-box">
+      <!-- <button :class="['setting-view-open', { on: showSettingBox }]" @click.prevent="showSettingBox = true">설정</button> -->
+      <button :class="['setting-view-open', { on: showSettingBox }]" @click.prevent="getSettingValue">설정</button>
+    </div>
 		<!-- 조회 화면 -->
 		<form id="form">
 			<div class="input-box">
@@ -154,6 +194,12 @@ async function getCoordinates(vehicleNumber, startTime, endTime) {
 	</section>
   <MapView :responseData="responseData" :isFunction="isFunction" />
 
+  <SettingView
+    v-if="showSettingBox"
+    @close-event="showSettingBox = false"
+    :settingValue="settingValue"
+  >
+  </SettingView>
 </template>
 
 <style scoped>

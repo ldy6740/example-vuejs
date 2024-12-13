@@ -5,6 +5,7 @@
 <script>
 import RealTimeSearch from './components/RealTimeSearch.vue';
 import PeriodSearch from './components/PeriodSearch.vue';
+import logoImg from '../src/assets/images/logo.png'
 
 export default {
   components: {
@@ -26,8 +27,8 @@ export default {
 
     <section class="header-area">
       <article id="logo" class="logo-area">
-        <!-- <img src="" alt=""> -->
-        logo
+        <img :src="logoImg" alt="">
+
       </article>
       <nav class="gnb-area">
         <ul>
@@ -57,16 +58,18 @@ export default {
 
 //hearer css
 .header-area {
-	background: #D9D9D9;
+	background: #868686;
 	display: flex;
 	gap: 20px;
 	padding: 10px;
 	.logo-area {
 		width: 150px;
 		height: 40px;
-		background: #B6B6B6;
 		text-align: center;
 		line-height: 40px;
+    img {
+      width: 100%;
+    }
 	}
 	.gnb-area {
 		ul {
