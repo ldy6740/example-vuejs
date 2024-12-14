@@ -257,7 +257,6 @@ let markerBreakImages = null;
  */
 function eventPointMarker(eventDatas) {
 // NOTE 해당 함수가 조회 버튼을 누르면 두번 실행 됨, 최초 1회는 정상,, 이후 조회 버튼을 클릭하면 첫번째 시도에서 데이터 없음.. 두번째 시도에 데이터가 전달 되어 watch에서 데이터 변화를 감지하고 함수 실행 getEventData -> eventPointMarker 순으로 함수 실행
-  console.log('start marker');
   markers.forEach(marker => marker.setMap(null));
   if (markers) {
     markers = [];
@@ -295,16 +294,31 @@ function eventPointMarker(eventDatas) {
     // console.log(Marker);
     markers.push(Marker);
   });
-  const id1 = document.getElementById('id1');
+  const breakMarkerHideBtn = document.getElementById('breakMarkerHide');
+  const accelMarkerHideBtn = document.getElementById('accelMarkerHide');
 
-  id1.addEventListener('click', () => {
-    console.log('id1 click')
+  breakMarkerHideBtn.addEventListener('click', (e) => {
     markers.map((item) => {
       if (item.getImage().ok.slice(19).indexOf('.') === 10) {
         if(!item.getVisible()) {
           item.setVisible(true);
+          e.target.innerText = 'OFF';
         } else {
           item.setVisible(false);
+          e.target.innerText = 'ON';
+        }
+      }
+    })
+  });
+  accelMarkerHideBtn.addEventListener('click', (e) => {
+    markers.map((item) => {
+      if (item.getImage().ok.slice(19).indexOf('.') === 11) {
+        if(!item.getVisible()) {
+          item.setVisible(true);
+          e.target.innerText = 'OFF';
+        } else {
+          item.setVisible(false);
+          e.target.innerText = 'ON';
         }
       }
     })
@@ -408,8 +422,6 @@ function hideOverlay() {
             <p class="item-value">{{ totalMileage }}km/h</p>
           </div>
         </div>
-        <button id="id1">test1</button>
-        <!-- <button id="id2">test2</button> -->
 			</div>
       <div class="style-controll-box">
         <p class="style-controll-label">주행 경로 스타일</p>
@@ -441,9 +453,16 @@ function hideOverlay() {
             <span class="is-show-polyline">OFF</span>
           </p>
         </div>
+        <div class="marker-isHide">
+          <p class="item-label">브레이크 마커 표시여부</p>
+          <p class="item-value"><button id="breakMarkerHide">OFF</button></p>
+        </div>
+        <div class="marker-isHide">
+          <p class="item-label">엑셀 마커 표시여부</p>
+          <p class="item-value"><button id="accelMarkerHide">OFF</button></p>
+        </div>
       </div>
 		</article>
-
 	</section>
 </template>
 

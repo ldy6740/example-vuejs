@@ -363,6 +363,29 @@ export default {
         font-size: 16px;
       }
     }
+    .marker-isHide {
+      border:1px solid #b9b9b9;
+      border-radius: 13px;
+      height: 50px;
+      padding: 5px;
+      .item-label {
+        font-size: 12px;
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #707070;
+        text-align: center;
+      }
+      .item-value {
+        button {
+          border:1px solid #b9b9b9;
+          width: 100%;
+          height: 30px;
+          border-radius: 5px;
+          font-weight: bold;
+          color: #424242;
+        }
+      }
+    }
   }
 }
 </style>

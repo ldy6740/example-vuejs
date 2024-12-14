@@ -226,8 +226,7 @@ function validationRuleCheck(item) {
 		}
 	} else {
 		alert("빈값을 입력할 수 없습니다. 값을 입력해주세요");
-		item.target.focus();
-	}
+		item.target.focus();	}
 }
 </script>
 
